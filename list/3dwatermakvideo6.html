@@ -1,0 +1,2529 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watermark 3D Ultimate - Text, Picture & Video Overlay</title>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Montserrat:wght@700;800;900&family=Pacifico&family=Bebas+Neue&family=Cinzel:wght@700;800;900&family=Dancing+Script:wght@700&family=Great+Vibes&family=Lobster&family=Righteous&family=Fredoka+One&family=Poppins:wght@700;800;900&family=Oswald:wght@700&family=Anton&family=Caveat:wght@700&family=Satisfy&family=Permanent+Marker&family=Shadows+Into+Light&family=Indie+Flower&family=Abril+Fatface&family=Alfa+Slab+One&family=Archivo+Black&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===== RESET & VARIABLES ===== */
+        :root {
+            --bg: #0a0a1a;
+            --surface: #12122a;
+            --surface2: #1a1a3a;
+            --surface3: #222244;
+            --accent: #e94560;
+            --accent2: #ff6b6b;
+            --gold: #d4a574;
+            --blue: #4a9eff;
+            --green: #2ecc71;
+            --purple: #9b59b6;
+            --text: #e0e0e0;
+            --text-light: #a0a0b0;
+            --border: #2a2a4a;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(233, 68, 96, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(74, 158, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(212, 165, 116, 0.04) 0%, transparent 50%);
+            min-height: 100vh;
+            color: var(--text);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1300px;
+            background: var(--surface);
+            border-radius: 20px;
+            box-shadow: var(--shadow), 0 0 0 1px var(--border);
+            padding: 24px 22px 20px;
+            backdrop-filter: blur(10px);
+            margin: 10px auto;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .app-header .logo-icon {
+            font-size: 42px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 12px rgba(233, 68, 96, 0.5));
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .app-header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #d4a574 40%, #e94560 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 4px 0 2px;
+        }
+        .app-header .subtitle {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .mode-btn {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: #ccc;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .mode-btn:hover { border-color: #fff; color: #fff; }
+        .mode-btn.active {
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            border-color: #e94560;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(233, 68, 96, 0.4);
+        }
+        .mode-btn.mode-picture.active {
+            background: linear-gradient(135deg, #4a9eff, #2980b9);
+            border-color: #4a9eff;
+            box-shadow: 0 4px 20px rgba(74, 158, 255, 0.4);
+        }
+        .mode-btn.mode-video.active {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            border-color: #9b59b6;
+            box-shadow: 0 4px 20px rgba(155, 89, 182, 0.4);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .main-layout { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: var(--surface2);
+            border-radius: var(--radius);
+            padding: 18px 16px;
+            border: 1px solid var(--border);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .panel-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: -4px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(0, 0, 0, 0.2);
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .upload-area:hover { border-color: var(--accent); background: rgba(233, 68, 96, 0.06); }
+        .upload-area.drag-over { border-color: var(--accent2); background: rgba(233, 68, 96, 0.12); transform: scale(1.01); }
+        .upload-icon { font-size: 36px; opacity: 0.7; }
+        .upload-text { font-weight: 600; font-size: 0.8rem; }
+        .upload-hint { font-size: 0.65rem; color: var(--text-light); }
+        input[type="file"] { display: none; }
+        .btn-remove {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            z-index: 2;
+        }
+        .btn-remove.visible { display: flex; }
+        .btn-remove:hover { background: #ff4757; transform: scale(1.15); }
+        .uploaded-preview-mini {
+            max-width: 100%;
+            max-height: 140px;
+            border-radius: 6px;
+            display: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+        .uploaded-preview-mini.visible { display: block; }
+        .video-preview {
+            width: 100%;
+            max-height: 140px;
+            border-radius: 6px;
+            display: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+        .video-preview.visible { display: block; }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #ccc;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.35);
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: var(--transition);
+            outline: none;
+        }
+        textarea {
+            min-height: 56px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(233, 68, 96, 0.15);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: var(--border);
+            outline: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(233, 68, 96, 0.5);
+        }
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .range-value {
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 38px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        @media (max-width: 500px) {
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+        }
+
+        .position-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .pos-btn {
+            padding: 8px 6px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            background: rgba(0, 0, 0, 0.3);
+            color: #999;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: var(--transition);
+            text-align: center;
+        }
+        .pos-btn:hover { border-color: #fff; color: #fff; }
+        .pos-btn.active {
+            border-color: var(--blue);
+            color: #fff;
+            background: rgba(74, 158, 255, 0.2);
+            box-shadow: 0 0 15px rgba(74, 158, 255, 0.3);
+        }
+
+        .preview-area {
+            position: relative;
+            background: #000;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border);
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);
+            flex-direction: column;
+        }
+        .preview-area canvas, .preview-area video {
+            max-width: 100%;
+            max-height: 450px;
+            display: block;
+        }
+        .preview-placeholder {
+            color: #555;
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 40px;
+            pointer-events: none;
+        }
+        .preview-placeholder .icon-placeholder {
+            font-size: 50px;
+            display: block;
+            margin-bottom: 8px;
+            opacity: 0.4;
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            width: 100%;
+            margin-top: 4px;
+        }
+        .video-controls .btn {
+            padding: 4px 16px;
+            font-size: 0.7rem;
+            min-width: 60px;
+            flex: 0 0 auto;
+        }
+        .video-controls .time-info {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-left: auto;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+            flex: 1;
+            min-width: 90px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(233, 68, 96, 0.3);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 22px rgba(233, 68, 96, 0.5);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: #ccc;
+        }
+        .btn-secondary:hover { border-color: #fff; color: #fff; }
+        .btn-download {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+        .btn-download:hover {
+            box-shadow: 0 6px 22px rgba(39, 174, 96, 0.5);
+            transform: translateY(-2px);
+        }
+        .btn-download:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: #fff;
+        }
+
+        .section-tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .section-tab {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.2);
+            color: #999;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .section-tab.active {
+            border-color: var(--accent);
+            color: #fff;
+            background: rgba(233, 68, 96, 0.2);
+        }
+        .section-tab:hover { border-color: #fff; color: #fff; }
+
+        .toast {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: #2ecc71;
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            z-index: 999;
+            opacity: 0;
+            transform: translateX(120px);
+            transition: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            box-shadow: 0 8px 24px rgba(46, 204, 113, 0.5);
+            max-width: 90vw;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .credit {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.65rem;
+            color: #555;
+            letter-spacing: 1px;
+        }
+        .credit span { color: var(--accent); }
+
+        .info-badge {
+            display: inline-block;
+            background: var(--surface3);
+            color: var(--text-light);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+        .hidden { display: none !important; }
+        .mt-1 { margin-top: 6px; }
+        .text-warning { color: #ff6b6b; }
+        .text-success { color: #2ecc71; }
+
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: #ff6b6b;
+            font-weight: 700;
+            font-size: 0.8rem;
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+        .recording-indicator.active { display: flex; }
+        .recording-indicator .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff6b6b;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar.active { display: block; }
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .format-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .format-selector label {
+            font-size: 0.75rem;
+            color: #ccc;
+        }
+        .format-selector select {
+            width: auto;
+            padding: 4px 10px;
+        }
+
+        .sub-section {
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-top: 6px;
+        }
+        .sub-section .panel-label {
+            font-size: 0.65rem;
+            color: var(--blue);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* Lock overlay saat recording */
+        .recording-lock {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .recording-lock::after {
+            content: "⏳ Sedang memproses...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            z-index: 10;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="app-header">
+            <span class="logo-icon">💎</span>
+            <h1>Watermark 3D Ultimate</h1>
+            <p class="subtitle">✨ TEXT · PICTURE · VIDEO — All-in-One Overlay Tool</p>
+        </div>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="text" id="modeText">📝 Overlay Teks</button>
+            <button class="mode-btn mode-picture" data-mode="picture" id="modePicture">🖼️ Overlay Picture/Logo</button>
+            <button class="mode-btn mode-video" data-mode="video" id="modeVideo">🎬 Overlay Video</button>
+        </div>
+
+        <div class="main-layout">
+            <!-- LEFT PANEL -->
+            <div class="panel" id="leftPanel">
+                <span class="panel-label">📤 Background / Media Utama</span>
+                <div class="section-tabs" id="bgTabs">
+                    <button class="section-tab active" data-bg="image">🖼️ Gambar (JPG/PNG)</button>
+                    <button class="section-tab" data-bg="video">🎬 Video (MP4/WebM)</button>
+                </div>
+                <div class="upload-area" id="bgUploadArea">
+                    <span class="upload-icon">🖼️</span>
+                    <span class="upload-text">Klik atau Seret Media ke Sini</span>
+                    <span class="upload-hint">*.jpg / *.png / *.mp4 / *.webm — Tanpa batas ukuran</span>
+                    <input type="file" id="bgFileInput" accept="image/jpeg,image/png,video/*">
+                    <button class="btn-remove" id="btnRemoveBg" title="Hapus media">✕</button>
+                    <img class="uploaded-preview-mini" id="bgPreviewMini" alt="Preview">
+                    <video class="video-preview" id="bgVideoPreview" muted></video>
+                </div>
+
+                <div id="overlaySettings"></div>
+
+                <!-- Format & Save Options -->
+                <div class="form-group" id="saveOptionsGroup" style="display:none;">
+                    <label>💾 Format & Mode Save</label>
+                    <div class="format-selector">
+                        <label>Format:</label>
+                        <select id="outputFormat">
+                            <option value="mp4">MP4</option>
+                            <option value="webm">WebM</option>
+                        </select>
+                        <label style="margin-left:8px;">Mode:</label>
+                        <select id="saveModeGlobal">
+                            <option value="direct">⚡ Direct Save</option>
+                            <option value="recompress">🗜️ Recompress</option>
+                        </select>
+                    </div>
+                    <div id="qualityGroupGlobal" style="display:none;">
+                        <label>🗜️ Kualitas Output</label>
+                        <div class="range-row">
+                            <input type="range" id="qualityGlobal" min="10" max="100" value="80" step="1">
+                            <span class="range-value" id="qualityGlobalVal">80%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-row" style="margin-top:5px;">
+                    <button class="btn btn-secondary" id="btnRefreshPreview">🔄 Refresh Preview</button>
+                    <button class="btn btn-download" id="btnDownload" disabled>⬇️ Download Hasil</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div class="recording-indicator" id="recordingIndicator">
+                        <span class="dot"></span> Merekam video...
+                    </div>
+                    <div class="progress-bar" id="progressBar">
+                        <div class="fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="panel">
+                <span class="panel-label">👁️ Preview Langsung</span>
+                <div class="preview-area" id="previewArea">
+                    <canvas id="previewCanvas"></canvas>
+                    <video id="previewVideo" loop muted playsinline style="display:none;"></video>
+                    <div class="preview-placeholder" id="previewPlaceholder">
+                        <span class="icon-placeholder">🖼️</span>
+                        Upload media untuk melihat preview
+                    </div>
+                </div>
+                <div class="video-controls" id="videoControls" style="display:none;">
+                    <button class="btn btn-secondary" id="playPauseBtn">▶️ Play</button>
+                    <button class="btn btn-secondary" id="stopBtn">⏹️ Stop</button>
+                    <span class="time-info" id="videoTimeInfo">⏱️ 0:00 / 0:00</span>
+                    <span class="time-info" id="videoSizeInfo">📐 -</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="credit">Dibuat dengan ❤️ oleh <span>William Yap</span> — Watermark 3D Ultimate</p>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // DOM REFS
+            // ============================================================
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const bgTabs = document.querySelectorAll('.section-tab');
+            const bgUploadArea = document.getElementById('bgUploadArea');
+            const bgFileInput = document.getElementById('bgFileInput');
+            const btnRemoveBg = document.getElementById('btnRemoveBg');
+            const bgPreviewMini = document.getElementById('bgPreviewMini');
+            const bgVideoPreview = document.getElementById('bgVideoPreview');
+            const previewCanvas = document.getElementById('previewCanvas');
+            const previewVideo = document.getElementById('previewVideo');
+            const previewPlaceholder = document.getElementById('previewPlaceholder');
+            const previewArea = document.getElementById('previewArea');
+            const btnRefreshPreview = document.getElementById('btnRefreshPreview');
+            const btnDownload = document.getElementById('btnDownload');
+            const overlaySettings = document.getElementById('overlaySettings');
+            const toast = document.getElementById('toast');
+            const recordingIndicator = document.getElementById('recordingIndicator');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const videoTimeInfo = document.getElementById('videoTimeInfo');
+            const videoSizeInfo = document.getElementById('videoSizeInfo');
+            const videoControls = document.getElementById('videoControls');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const saveOptionsGroup = document.getElementById('saveOptionsGroup');
+            const outputFormat = document.getElementById('outputFormat');
+            const saveModeGlobal = document.getElementById('saveModeGlobal');
+            const qualityGroupGlobal = document.getElementById('qualityGroupGlobal');
+            const qualityGlobal = document.getElementById('qualityGlobal');
+            const qualityGlobalVal = document.getElementById('qualityGlobalVal');
+
+            // ============================================================
+            // STATE
+            // ============================================================
+            let currentMode = 'text';
+            let bgType = 'image';
+            let backgroundImage = null;
+            let backgroundVideoElement = null;
+            let backgroundVideoURL = null;
+            let overlayImage = null;
+            let overlayVideoURL = null;
+            let overlayVideoElement = null;
+            let backgroundFileName = 'output';
+            let isVideoBackground = false;
+            let isPlaying = false;
+            let isRecording = false;
+            let mediaRecorder = null;
+            let recordedChunks = [];
+            let animationId = null;
+            let videoOverlayPosition = 'center';
+            let videoOverlayScale = 50;
+            let extraPictureOverlay = null;
+            let extraPicturePosition = 'center';
+            let extraPictureScale = 25;
+            let textPosition = 'center';
+            let isRendering = false; // untuk lock UI saat download
+
+            // ============================================================
+            // TOAST
+            // ============================================================
+            function showToast(msg, isError = false) {
+                toast.textContent = msg;
+                toast.style.background = isError ? '#e74c3c' : '#2ecc71';
+                toast.style.boxShadow = isError ? '0 8px 24px rgba(231,76,60,0.5)' : '0 8px 24px rgba(46,204,113,0.5)';
+                toast.classList.add('show');
+                clearTimeout(toast._timeout);
+                toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+
+            // ============================================================
+            // MODE SWITCHING
+            // ============================================================
+            function setMode(mode) {
+                if (isRendering) return;
+                currentMode = mode;
+                modeButtons.forEach(b => b.classList.remove('active'));
+                const btn = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));
+                if (btn) btn.classList.add('active');
+                renderOverlaySettings();
+                // Refresh preview tanpa mengganggu play state
+                if (!isPlaying) {
+                    refreshPreview();
+                } else {
+                    // Jika sedang play, update tampilan tanpa mengganggu
+                    if (backgroundVideoElement) {
+                        // hanya refresh frame jika perlu
+                    }
+                }
+                if (mode === 'picture' || mode === 'video') {
+                    saveOptionsGroup.style.display = 'block';
+                } else {
+                    saveOptionsGroup.style.display = 'none';
+                }
+                toggleQualityGroup();
+            }
+
+            function setBgType(type) {
+                if (isRendering) return;
+                bgType = type;
+                bgTabs.forEach(t => t.classList.remove('active'));
+                document.querySelector(`[data-bg="${type}"]`).classList.add('active');
+
+                const uploadHint = bgUploadArea.querySelector('.upload-hint');
+                const uploadIcon = bgUploadArea.querySelector('.upload-icon');
+                const uploadText = bgUploadArea.querySelector('.upload-text');
+
+                if (type === 'image') {
+                    bgFileInput.accept = 'image/jpeg,image/png';
+                    uploadHint.textContent = '*.jpg / *.png — Tanpa batas ukuran';
+                    uploadIcon.textContent = '🖼️';
+                    uploadText.textContent = 'Klik atau Seret Gambar ke Sini';
+                } else {
+                    bgFileInput.accept = 'video/*';
+                    uploadHint.textContent = '*.mp4 / *.webm — Tanpa batas ukuran';
+                    uploadIcon.textContent = '🎬';
+                    uploadText.textContent = 'Klik atau Seret Video ke Sini';
+                }
+
+                isVideoBackground = (type === 'video');
+                resetBackground();
+                if (!isVideoBackground) {
+                    videoControls.style.display = 'none';
+                }
+            }
+
+            function toggleQualityGroup() {
+                const mode = saveModeGlobal.value;
+                qualityGroupGlobal.style.display = (mode === 'recompress') ? 'block' : 'none';
+            }
+
+            // ============================================================
+            // OVERLAY SETTINGS RENDERER
+            // ============================================================
+            function renderOverlaySettings() {
+                let html = '';
+                if (currentMode === 'text') {
+                    html = renderTextSettings();
+                } else if (currentMode === 'picture') {
+                    html = renderPictureSettings();
+                } else if (currentMode === 'video') {
+                    html = renderVideoOverlaySettings();
+                }
+                overlaySettings.innerHTML = html;
+                bindOverlayEvents();
+            }
+
+            function renderTextSettings() {
+                return `
+                    <span class="panel-label">✏️ Teks Watermark</span>
+                    <div class="form-group">
+                        <label>📝 Tulis Teks (bisa multi-baris, tekan Enter)</label>
+                        <textarea id="watermarkText" rows="2" placeholder="Ketik teks watermark...">print by Tri Suaka</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🔤 Font</label>
+                            <select id="fontSelect">
+                                <option value="'Lobster', cursive">🦞 Lobster</option>
+                                <option value="'Playfair Display', serif">🎩 Playfair Display</option>
+                                <option value="'Montserrat', sans-serif">🔲 Montserrat</option>
+                                <option value="'Pacifico', cursive">🌊 Pacifico</option>
+                                <option value="'Bebas Neue', sans-serif">🏗️ Bebas Neue</option>
+                                <option value="'Cinzel', serif">🏛️ Cinzel</option>
+                                <option value="'Dancing Script', cursive">💃 Dancing Script</option>
+                                <option value="'Great Vibes', cursive">🪶 Great Vibes</option>
+                                <option value="'Righteous', sans-serif">⚡ Righteous</option>
+                                <option value="'Fredoka One', sans-serif">🧸 Fredoka One</option>
+                                <option value="'Poppins', sans-serif">🔤 Poppins</option>
+                                <option value="'Oswald', sans-serif">📰 Oswald</option>
+                                <option value="'Anton', sans-serif">💪 Anton</option>
+                                <option value="'Caveat', cursive">✍️ Caveat</option>
+                                <option value="'Satisfy', cursive">🌸 Satisfy</option>
+                                <option value="'Permanent Marker', cursive">🖊️ Permanent Marker</option>
+                                <option value="'Shadows Into Light', cursive">🌙 Shadows Into Light</option>
+                                <option value="'Indie Flower', cursive">🌻 Indie Flower</option>
+                                <option value="'Abril Fatface', serif">📚 Abril Fatface</option>
+                                <option value="'Alfa Slab One', serif">🔨 Alfa Slab One</option>
+                                <option value="'Archivo Black', sans-serif">🏴 Archivo Black</option>
+                                <option value="'Arial Black', sans-serif">🅰️ Arial Black</option>
+                                <option value="'Georgia', serif">📖 Georgia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>📐 Ukuran Font</label>
+                            <div class="range-row">
+                                <input type="range" id="fontSize" min="20" max="200" value="72" step="1">
+                                <span class="range-value" id="fontSizeVal">72px</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>👁️ Opacity</label>
+                            <div class="range-row">
+                                <input type="range" id="opacity" min="10" max="100" value="65" step="1">
+                                <span class="range-value" id="opacityVal">65%</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>🔄 Rotasi (°)</label>
+                            <div class="range-row">
+                                <input type="range" id="rotation" min="-90" max="90" value="-25" step="1">
+                                <span class="range-value" id="rotationVal">-25°</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>📍 Posisi Teks</label>
+                        <div class="position-grid" id="textPositionGrid">
+                            <button class="pos-btn" data-pos="top-left">↖️ TL</button>
+                            <button class="pos-btn" data-pos="top-center">⬆️ TC</button>
+                            <button class="pos-btn" data-pos="top-right">↗️ TR</button>
+                            <button class="pos-btn" data-pos="center-left">⬅️ CL</button>
+                            <button class="pos-btn active" data-pos="center">🎯 C</button>
+                            <button class="pos-btn" data-pos="center-right">➡️ CR</button>
+                            <button class="pos-btn" data-pos="bottom-left">↙️ BL</button>
+                            <button class="pos-btn" data-pos="bottom-center">⬇️ BC</button>
+                            <button class="pos-btn" data-pos="bottom-right">↘️ BR</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>🗜️ Kualitas Output (hanya untuk gambar)</label>
+                        <div class="range-row">
+                            <input type="range" id="quality" min="10" max="100" value="85" step="1">
+                            <span class="range-value" id="qualityVal">85%</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderPictureSettings() {
+                return `
+                    <span class="panel-label">🖼️ Overlay Picture / Logo</span>
+                    <div class="upload-area" id="overlayUploadArea" style="min-height:70px; padding:12px;">
+                        <span class="upload-icon">📎</span>
+                        <span class="upload-text">Upload Logo / Picture Overlay</span>
+                        <span class="upload-hint">*.jpg / *.png — Transparan didukung</span>
+                        <input type="file" id="overlayFileInput" accept="image/jpeg,image/png">
+                        <button class="btn-remove" id="btnRemoveOverlay" title="Hapus overlay">✕</button>
+                        <img class="uploaded-preview-mini" id="overlayPreviewMini" alt="Overlay Preview">
+                    </div>
+                    <span class="info-badge" id="overlaySizeInfo">📏 Ukuran overlay: -</span>
+
+                    <div class="form-group">
+                        <label>📐 Resize Overlay (% dari ukuran asli)</label>
+                        <div class="range-row">
+                            <input type="range" id="overlayScale" min="5" max="200" value="50" step="1">
+                            <span class="range-value" id="overlayScaleVal">50%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="lockRatio" checked>
+                            <label for="lockRatio" style="cursor:pointer;">🔒 Lock Aspect Ratio</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📍 Posisi Overlay</label>
+                        <div class="position-grid" id="positionGrid">
+                            <button class="pos-btn" data-pos="top-left">↖️ TL</button>
+                            <button class="pos-btn" data-pos="top-center">⬆️ TC</button>
+                            <button class="pos-btn" data-pos="top-right">↗️ TR</button>
+                            <button class="pos-btn" data-pos="center-left">⬅️ CL</button>
+                            <button class="pos-btn active" data-pos="center">🎯 C</button>
+                            <button class="pos-btn" data-pos="center-right">➡️ CR</button>
+                            <button class="pos-btn" data-pos="bottom-left">↙️ BL</button>
+                            <button class="pos-btn" data-pos="bottom-center">⬇️ BC</button>
+                            <button class="pos-btn" data-pos="bottom-right">↘️ BR</button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>👁️ Opacity</label>
+                            <div class="range-row">
+                                <input type="range" id="overlayOpacity" min="10" max="100" value="80" step="1">
+                                <span class="range-value" id="overlayOpacityVal">80%</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>🔄 Rotasi (°)</label>
+                            <div class="range-row">
+                                <input type="range" id="overlayRotation" min="-180" max="180" value="0" step="1">
+                                <span class="range-value" id="overlayRotationVal">0°</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== TEXT OVERLAY IN PICTURE MODE ===== -->
+                    <div class="sub-section">
+                        <span class="panel-label">✏️ Teks Tambahan (opsional) — multi-baris</span>
+                        <div class="form-group">
+                            <label>📝 Tulis Teks</label>
+                            <textarea id="watermarkText" rows="2" placeholder="Ketik teks atau kosongkan..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>🔤 Font</label>
+                                <select id="fontSelect">
+                                    <option value="'Lobster', cursive">🦞 Lobster</option>
+                                    <option value="'Playfair Display', serif">🎩 Playfair Display</option>
+                                    <option value="'Montserrat', sans-serif">🔲 Montserrat</option>
+                                    <option value="'Pacifico', cursive">🌊 Pacifico</option>
+                                    <option value="'Bebas Neue', sans-serif">🏗️ Bebas Neue</option>
+                                    <option value="'Cinzel', serif">🏛️ Cinzel</option>
+                                    <option value="'Dancing Script', cursive">💃 Dancing Script</option>
+                                    <option value="'Great Vibes', cursive">🪶 Great Vibes</option>
+                                    <option value="'Righteous', sans-serif">⚡ Righteous</option>
+                                    <option value="'Fredoka One', sans-serif">🧸 Fredoka One</option>
+                                    <option value="'Poppins', sans-serif">🔤 Poppins</option>
+                                    <option value="'Oswald', sans-serif">📰 Oswald</option>
+                                    <option value="'Anton', sans-serif">💪 Anton</option>
+                                    <option value="'Caveat', cursive">✍️ Caveat</option>
+                                    <option value="'Arial Black', sans-serif">🅰️ Arial Black</option>
+                                    <option value="'Georgia', serif">📖 Georgia</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>📐 Ukuran Font</label>
+                                <div class="range-row">
+                                    <input type="range" id="fontSize" min="20" max="200" value="60" step="1">
+                                    <span class="range-value" id="fontSizeVal">60px</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>👁️ Opacity Teks</label>
+                                <div class="range-row">
+                                    <input type="range" id="opacity" min="10" max="100" value="70" step="1">
+                                    <span class="range-value" id="opacityVal">70%</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>🔄 Rotasi Teks (°)</label>
+                                <div class="range-row">
+                                    <input type="range" id="rotation" min="-90" max="90" value="-20" step="1">
+                                    <span class="range-value" id="rotationVal">-20°</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>📍 Posisi Teks</label>
+                            <div class="position-grid" id="textPositionGridPicture">
+                                <button class="pos-btn" data-pos="top-left">↖️ TL</button>
+                                <button class="pos-btn" data-pos="top-center">⬆️ TC</button>
+                                <button class="pos-btn" data-pos="top-right">↗️ TR</button>
+                                <button class="pos-btn" data-pos="center-left">⬅️ CL</button>
+                                <button class="pos-btn active" data-pos="center">🎯 C</button>
+                                <button class="pos-btn" data-pos="center-right">➡️ CR</button>
+                                <button class="pos-btn" data-pos="bottom-left">↙️ BL</button>
+                                <button class="pos-btn" data-pos="bottom-center">⬇️ BC</button>
+                                <button class="pos-btn" data-pos="bottom-right">↘️ BR</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderVideoOverlaySettings() {
+                return `
+                    <span class="panel-label">🎬 Overlay Video (di atas background)</span>
+                    <div class="upload-area" id="videoOverlayUploadArea" style="min-height:70px; padding:12px;">
+                        <span class="upload-icon">🎬</span>
+                        <span class="upload-text">Upload Video Overlay</span>
+                        <span class="upload-hint">*.mp4 / *.webm — Tanpa batas ukuran</span>
+                        <input type="file" id="videoOverlayFileInput" accept="video/*">
+                        <button class="btn-remove" id="btnRemoveVideoOverlay" title="Hapus overlay">✕</button>
+                        <video class="video-preview" id="videoOverlayPreview" muted loop></video>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📍 Posisi Video Overlay</label>
+                        <div class="position-grid" id="videoOverlayPositionGrid">
+                            <button class="pos-btn" data-pos="top-left">↖️ TL</button>
+                            <button class="pos-btn" data-pos="top-center">⬆️ TC</button>
+                            <button class="pos-btn" data-pos="top-right">↗️ TR</button>
+                            <button class="pos-btn" data-pos="center-left">⬅️ CL</button>
+                            <button class="pos-btn active" data-pos="center">🎯 C</button>
+                            <button class="pos-btn" data-pos="center-right">➡️ CR</button>
+                            <button class="pos-btn" data-pos="bottom-left">↙️ BL</button>
+                            <button class="pos-btn" data-pos="bottom-center">⬇️ BC</button>
+                            <button class="pos-btn" data-pos="bottom-right">↘️ BR</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📐 Resize Video Overlay (% dari ukuran asli)</label>
+                        <div class="range-row">
+                            <input type="range" id="videoOverlayScale" min="5" max="200" value="50" step="1">
+                            <span class="range-value" id="videoOverlayScaleVal">50%</span>
+                        </div>
+                    </div>
+
+                    <!-- ===== TEXT OVERLAY IN VIDEO MODE ===== -->
+                    <div class="sub-section">
+                        <span class="panel-label">✏️ Teks Tambahan (opsional) — multi-baris</span>
+                        <div class="form-group">
+                            <label>📝 Tulis Teks</label>
+                            <textarea id="watermarkText" rows="2" placeholder="Ketik teks atau kosongkan..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>🔤 Font</label>
+                                <select id="fontSelect">
+                                    <option value="'Lobster', cursive">🦞 Lobster</option>
+                                    <option value="'Playfair Display', serif">🎩 Playfair Display</option>
+                                    <option value="'Montserrat', sans-serif">🔲 Montserrat</option>
+                                    <option value="'Pacifico', cursive">🌊 Pacifico</option>
+                                    <option value="'Bebas Neue', sans-serif">🏗️ Bebas Neue</option>
+                                    <option value="'Cinzel', serif">🏛️ Cinzel</option>
+                                    <option value="'Dancing Script', cursive">💃 Dancing Script</option>
+                                    <option value="'Great Vibes', cursive">🪶 Great Vibes</option>
+                                    <option value="'Righteous', sans-serif">⚡ Righteous</option>
+                                    <option value="'Fredoka One', sans-serif">🧸 Fredoka One</option>
+                                    <option value="'Poppins', sans-serif">🔤 Poppins</option>
+                                    <option value="'Oswald', sans-serif">📰 Oswald</option>
+                                    <option value="'Anton', sans-serif">💪 Anton</option>
+                                    <option value="'Caveat', cursive">✍️ Caveat</option>
+                                    <option value="'Arial Black', sans-serif">🅰️ Arial Black</option>
+                                    <option value="'Georgia', serif">📖 Georgia</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>📐 Ukuran Font</label>
+                                <div class="range-row">
+                                    <input type="range" id="fontSize" min="20" max="200" value="60" step="1">
+                                    <span class="range-value" id="fontSizeVal">60px</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>👁️ Opacity Teks</label>
+                                <div class="range-row">
+                                    <input type="range" id="opacity" min="10" max="100" value="70" step="1">
+                                    <span class="range-value" id="opacityVal">70%</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>🔄 Rotasi Teks (°)</label>
+                                <div class="range-row">
+                                    <input type="range" id="rotation" min="-90" max="90" value="-20" step="1">
+                                    <span class="range-value" id="rotationVal">-20°</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>📍 Posisi Teks</label>
+                            <div class="position-grid" id="textPositionGridVideo">
+                                <button class="pos-btn" data-pos="top-left">↖️ TL</button>
+                                <button class="pos-btn" data-pos="top-center">⬆️ TC</button>
+                                <button class="pos-btn" data-pos="top-right">↗️ TR</button>
+                                <button class="pos-btn" data-pos="center-left">⬅️ CL</button>
+                                <button class="pos-btn active" data-pos="center">🎯 C</button>
+                                <button class="pos-btn" data-pos="center-right">➡️ CR</button>
+                                <button class="pos-btn" data-pos="bottom-left">↙️ BL</button>
+                                <button class="pos-btn" data-pos="bottom-center">⬇️ BC</button>
+                                <button class="pos-btn" data-pos="bottom-right">↘️ BR</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== PICTURE OVERLAY IN VIDEO MODE ===== -->
+                    <div class="sub-section">
+                        <span class="panel-label">🖼️ Picture Overlay Tambahan</span>
+                        <div class="upload-area" id="pictureOverlayInVideoMode" style="min-height:50px; padding:8px; border-style:dashed;">
+                            <span class="upload-icon" style="font-size:20px;">🖼️</span>
+                            <span class="upload-text" style="font-size:0.7rem;">Upload Picture tambahan</span>
+                            <span class="upload-hint" style="font-size:0.55rem;">*.jpg / *.png</span>
+                            <input type="file" id="pictureOverlayFileInputVideo" accept="image/jpeg,image/png">
+                            <button class="btn-remove" id="btnRemovePictureOverlayVideo" title="Hapus">✕</button>
+                            <img class="uploaded-preview-mini" id="pictureOverlayPreviewVideo" alt="Preview">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>📍 Posisi Picture</label>
+                                <div class="position-grid" id="extraPicturePositionGrid">
+                                    <button class="pos-btn" data-pos="top-left">↖️ TL</button>
+                                    <button class="pos-btn" data-pos="top-center">⬆️ TC</button>
+                                    <button class="pos-btn" data-pos="top-right">↗️ TR</button>
+                                    <button class="pos-btn" data-pos="center-left">⬅️ CL</button>
+                                    <button class="pos-btn active" data-pos="center">🎯 C</button>
+                                    <button class="pos-btn" data-pos="center-right">➡️ CR</button>
+                                    <button class="pos-btn" data-pos="bottom-left">↙️ BL</button>
+                                    <button class="pos-btn" data-pos="bottom-center">⬇️ BC</button>
+                                    <button class="pos-btn" data-pos="bottom-right">↘️ BR</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>📐 Resize (% dari area)</label>
+                                <div class="range-row">
+                                    <input type="range" id="extraPictureScale" min="5" max="100" value="25" step="1">
+                                    <span class="range-value" id="extraPictureScaleVal">25%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>👁️ Opacity</label>
+                                <div class="range-row">
+                                    <input type="range" id="extraPictureOpacity" min="10" max="100" value="80" step="1">
+                                    <span class="range-value" id="extraPictureOpacityVal">80%</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>🔄 Rotasi (°)</label>
+                                <div class="range-row">
+                                    <input type="range" id="extraPictureRotation" min="-180" max="180" value="0" step="1">
+                                    <span class="range-value" id="extraPictureRotationVal">0°</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ============================================================
+            // BIND OVERLAY EVENTS
+            // ============================================================
+            function bindOverlayEvents() {
+                // Common elements
+                const textInput = document.getElementById('watermarkText');
+                const fontSelect = document.getElementById('fontSelect');
+                const fontSizeInput = document.getElementById('fontSize');
+                const fontSizeVal = document.getElementById('fontSizeVal');
+                const opacityInput = document.getElementById('opacity');
+                const opacityVal = document.getElementById('opacityVal');
+                const rotationInput = document.getElementById('rotation');
+                const rotationVal = document.getElementById('rotationVal');
+
+                // --- Range listeners ---
+                const rangeMap = [
+                    [fontSizeInput, fontSizeVal, 'px'],
+                    [opacityInput, opacityVal, '%'],
+                    [rotationInput, rotationVal, '°']
+                ];
+                rangeMap.forEach(([el, valEl, suffix]) => {
+                    if (el && valEl) {
+                        el.addEventListener('input', () => {
+                            valEl.textContent = el.value + suffix;
+                            // Update preview tanpa mengganggu play
+                            if (!isPlaying && !isRendering) {
+                                refreshPreview();
+                            } else {
+                                // Jika sedang play, kita tetap update canvas secara langsung
+                                // karena kita punya loop yang berjalan, kita hanya perlu tanda bahwa ada perubahan
+                                // Biarkan loop yang akan mengambil nilai terbaru
+                                // Tapi kita perlu memaksa refresh frame saat play
+                                if (backgroundVideoElement && isPlaying) {
+                                    // Tidak perlu interupsi, loop akan mengambil nilai terbaru
+                                }
+                            }
+                        });
+                    }
+                });
+
+                if (textInput) {
+                    textInput.addEventListener('input', () => {
+                        // Update teks tanpa mempengaruhi play state
+                        if (!isPlaying && !isRendering) {
+                            refreshPreview();
+                        }
+                        // Jika sedang play, loop akan mengambil teks terbaru
+                    });
+                }
+                if (fontSelect) {
+                    fontSelect.addEventListener('change', () => {
+                        if (!isPlaying && !isRendering) refreshPreview();
+                    });
+                }
+
+                // --- Text position grids ---
+                ['textPositionGrid', 'textPositionGridPicture', 'textPositionGridVideo'].forEach(id => {
+                    const grid = document.getElementById(id);
+                    if (!grid) return;
+                    const btns = grid.querySelectorAll('.pos-btn');
+                    btns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            btns.forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            textPosition = btn.dataset.pos;
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    });
+                    const activeBtn = grid.querySelector(`[data-pos="${textPosition}"]`);
+                    if (activeBtn) {
+                        btns.forEach(b => b.classList.remove('active'));
+                        activeBtn.classList.add('active');
+                    }
+                });
+
+                // ---------- Picture mode ----------
+                if (currentMode === 'picture') {
+                    const overlayUploadArea = document.getElementById('overlayUploadArea');
+                    const overlayFileInput = document.getElementById('overlayFileInput');
+                    const btnRemoveOverlay = document.getElementById('btnRemoveOverlay');
+                    const overlayPreviewMini = document.getElementById('overlayPreviewMini');
+                    const overlayScaleInput = document.getElementById('overlayScale');
+                    const overlayScaleVal = document.getElementById('overlayScaleVal');
+                    const lockRatio = document.getElementById('lockRatio');
+                    const posBtns = document.querySelectorAll('#positionGrid .pos-btn');
+                    const overlayOpacityInput = document.getElementById('overlayOpacity');
+                    const overlayOpacityVal = document.getElementById('overlayOpacityVal');
+                    const overlayRotationInput = document.getElementById('overlayRotation');
+                    const overlayRotationVal = document.getElementById('overlayRotationVal');
+
+                    if (overlayUploadArea && overlayFileInput) {
+                        overlayUploadArea.addEventListener('click', (e) => {
+                            if (e.target !== btnRemoveOverlay) overlayFileInput.click();
+                        });
+                        overlayFileInput.addEventListener('change', (e) => {
+                            if (e.target.files && e.target.files[0]) loadOverlayImage(e.target.files[0]);
+                        });
+                        overlayUploadArea.addEventListener('dragover', (e) => { e.preventDefault();
+                            overlayUploadArea.style.borderColor = '#4a9eff'; });
+                        overlayUploadArea.addEventListener('dragleave', () => { overlayUploadArea.style.borderColor =
+                            ''; });
+                        overlayUploadArea.addEventListener('drop', (e) => {
+                            e.preventDefault();
+                            overlayUploadArea.style.borderColor = '';
+                            if (e.dataTransfer.files && e.dataTransfer.files[0]) loadOverlayImage(e.dataTransfer
+                                .files[0]);
+                        });
+                    }
+                    if (btnRemoveOverlay) {
+                        btnRemoveOverlay.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            overlayImage = null;
+                            if (overlayPreviewMini) { overlayPreviewMini.classList.remove('visible');
+                                overlayPreviewMini.src = ''; }
+                            btnRemoveOverlay.classList.remove('visible');
+                            document.getElementById('overlaySizeInfo').textContent = '📏 Ukuran overlay: -';
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    }
+                    [overlayScaleInput, overlayOpacityInput, overlayRotationInput].forEach(el => {
+                        if (!el) return;
+                        el.addEventListener('input', () => {
+                            if (overlayScaleVal && el === overlayScaleInput) overlayScaleVal.textContent = el
+                                .value + '%';
+                            if (overlayOpacityVal && el === overlayOpacityInput) overlayOpacityVal.textContent =
+                                el.value + '%';
+                            if (overlayRotationVal && el === overlayRotationInput) overlayRotationVal.textContent =
+                                el.value + '°';
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    });
+                    if (lockRatio) lockRatio.addEventListener('change', () => { if (!isPlaying && !isRendering)
+                            refreshPreview(); });
+                    if (posBtns) {
+                        posBtns.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                posBtns.forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+                                if (!isPlaying && !isRendering) refreshPreview();
+                            });
+                        });
+                    }
+                }
+
+                // ---------- Video overlay mode ----------
+                if (currentMode === 'video') {
+                    const videoOverlayUploadArea = document.getElementById('videoOverlayUploadArea');
+                    const videoOverlayFileInput = document.getElementById('videoOverlayFileInput');
+                    const btnRemoveVideoOverlay = document.getElementById('btnRemoveVideoOverlay');
+                    const videoOverlayPreview = document.getElementById('videoOverlayPreview');
+                    const videoOverlayScaleInput = document.getElementById('videoOverlayScale');
+                    const videoOverlayScaleVal = document.getElementById('videoOverlayScaleVal');
+                    const videoPosBtns = document.querySelectorAll('#videoOverlayPositionGrid .pos-btn');
+
+                    if (videoOverlayUploadArea && videoOverlayFileInput) {
+                        videoOverlayUploadArea.addEventListener('click', (e) => {
+                            if (e.target !== btnRemoveVideoOverlay) videoOverlayFileInput.click();
+                        });
+                        videoOverlayFileInput.addEventListener('change', (e) => {
+                            if (e.target.files && e.target.files[0]) loadOverlayVideo(e.target.files[0]);
+                        });
+                        videoOverlayUploadArea.addEventListener('dragover', (e) => { e.preventDefault();
+                            videoOverlayUploadArea.style.borderColor = '#9b59b6'; });
+                        videoOverlayUploadArea.addEventListener('dragleave', () => { videoOverlayUploadArea.style
+                                .borderColor = ''; });
+                        videoOverlayUploadArea.addEventListener('drop', (e) => {
+                            e.preventDefault();
+                            videoOverlayUploadArea.style.borderColor = '';
+                            if (e.dataTransfer.files && e.dataTransfer.files[0]) loadOverlayVideo(e.dataTransfer
+                                .files[0]);
+                        });
+                    }
+                    if (btnRemoveVideoOverlay) {
+                        btnRemoveVideoOverlay.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            overlayVideoURL = null;
+                            overlayVideoElement = null;
+                            if (videoOverlayPreview) { videoOverlayPreview.classList.remove('visible');
+                                videoOverlayPreview.src = ''; }
+                            btnRemoveVideoOverlay.classList.remove('visible');
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    }
+
+                    if (videoPosBtns) {
+                        videoPosBtns.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                videoPosBtns.forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+                                videoOverlayPosition = btn.dataset.pos;
+                                if (!isPlaying && !isRendering) refreshPreview();
+                            });
+                        });
+                    }
+
+                    if (videoOverlayScaleInput && videoOverlayScaleVal) {
+                        videoOverlayScaleInput.addEventListener('input', () => {
+                            videoOverlayScaleVal.textContent = videoOverlayScaleInput.value + '%';
+                            videoOverlayScale = parseInt(videoOverlayScaleInput.value);
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    }
+
+                    // Extra picture overlay in video mode
+                    const pictureOverlayInVideoMode = document.getElementById('pictureOverlayInVideoMode');
+                    const pictureOverlayFileInputVideo = document.getElementById('pictureOverlayFileInputVideo');
+                    const btnRemovePictureOverlayVideo = document.getElementById('btnRemovePictureOverlayVideo');
+                    const pictureOverlayPreviewVideo = document.getElementById('pictureOverlayPreviewVideo');
+                    const extraPictureScaleInput = document.getElementById('extraPictureScale');
+                    const extraPictureScaleVal = document.getElementById('extraPictureScaleVal');
+                    const extraPictureOpacityInput = document.getElementById('extraPictureOpacity');
+                    const extraPictureOpacityVal = document.getElementById('extraPictureOpacityVal');
+                    const extraPictureRotationInput = document.getElementById('extraPictureRotation');
+                    const extraPictureRotationVal = document.getElementById('extraPictureRotationVal');
+                    const extraPosBtns = document.querySelectorAll('#extraPicturePositionGrid .pos-btn');
+
+                    if (pictureOverlayInVideoMode && pictureOverlayFileInputVideo) {
+                        pictureOverlayInVideoMode.addEventListener('click', (e) => {
+                            if (e.target !== btnRemovePictureOverlayVideo) pictureOverlayFileInputVideo.click();
+                        });
+                        pictureOverlayFileInputVideo.addEventListener('change', (e) => {
+                            if (e.target.files && e.target.files[0]) loadExtraPictureOverlay(e.target.files[0]);
+                        });
+            pictureOverlayInVideoMode.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                pictureOverlayInVideoMode.classList.add('drag-over');
+            });
+            pictureOverlayInVideoMode.addEventListener('dragleave', () => {
+                pictureOverlayInVideoMode.classList.remove('drag-over');
+            });
+            pictureOverlayInVideoMode.addEventListener('drop', (e) => {
+                e.preventDefault();
+                pictureOverlayInVideoMode.classList.remove('drag-over');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    loadExtraPictureOverlay(e.dataTransfer.files[0]);
+                }
+            });
+
+                    }
+                    if (btnRemovePictureOverlayVideo) {
+                        btnRemovePictureOverlayVideo.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            extraPictureOverlay = null;
+                            if (pictureOverlayPreviewVideo) { pictureOverlayPreviewVideo.classList.remove(
+                                    'visible');
+                                pictureOverlayPreviewVideo.src = ''; }
+                            btnRemovePictureOverlayVideo.classList.remove('visible');
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    }
+
+                    if (extraPictureScaleInput && extraPictureScaleVal) {
+                        extraPictureScaleInput.addEventListener('input', () => {
+                            extraPictureScaleVal.textContent = extraPictureScaleInput.value + '%';
+                            extraPictureScale = parseInt(extraPictureScaleInput.value);
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    }
+                    if (extraPictureOpacityInput && extraPictureOpacityVal) {
+                        extraPictureOpacityInput.addEventListener('input', () => {
+                            extraPictureOpacityVal.textContent = extraPictureOpacityInput.value + '%';
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    }
+                    if (extraPictureRotationInput && extraPictureRotationVal) {
+                        extraPictureRotationInput.addEventListener('input', () => {
+                            extraPictureRotationVal.textContent = extraPictureRotationInput.value + '°';
+                            if (!isPlaying && !isRendering) refreshPreview();
+                        });
+                    }
+                    if (extraPosBtns) {
+                        extraPosBtns.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                extraPosBtns.forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+                                extraPicturePosition = btn.dataset.pos;
+                                if (!isPlaying && !isRendering) refreshPreview();
+                            });
+                        });
+                    }
+                }
+
+                // Global save options
+                const saveModeGlobalEl = document.getElementById('saveModeGlobal');
+                const qualityGlobalEl = document.getElementById('qualityGlobal');
+                const qualityGlobalValEl = document.getElementById('qualityGlobalVal');
+
+                if (saveModeGlobalEl) {
+                    saveModeGlobalEl.addEventListener('change', toggleQualityGroup);
+                }
+                if (qualityGlobalEl && qualityGlobalValEl) {
+                    qualityGlobalEl.addEventListener('input', () => {
+                        qualityGlobalValEl.textContent = qualityGlobalEl.value + '%';
+                    });
+                }
+            }
+
+            // ============================================================
+            // LOAD OVERLAY IMAGE (picture mode)
+            // ============================================================
+            function loadOverlayImage(file) {
+                if (isRendering) return;
+                if (!file.type.match(/image\/(jpeg|png)/)) {
+                    showToast('Overlay harus JPG atau PNG!', true);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        overlayImage = img;
+                        const preview = document.getElementById('overlayPreviewMini');
+                        const removeBtn = document.getElementById('btnRemoveOverlay');
+                        const sizeInfo = document.getElementById('overlaySizeInfo');
+                        if (preview) { preview.src = e.target.result;
+                            preview.classList.add('visible'); }
+                        if (removeBtn) removeBtn.classList.add('visible');
+                        if (sizeInfo) {
+                            let txt = `📏 Ukuran overlay: ${img.width}×${img.height}px`;
+                            if (backgroundImage) txt += ` | BG: ${backgroundImage.width}×${backgroundImage.height}px`;
+                            sizeInfo.textContent = txt;
+                        }
+                        if (!isPlaying && !isRendering) refreshPreview();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // ============================================================
+            // LOAD OVERLAY VIDEO
+            // ============================================================
+            function loadOverlayVideo(file) {
+                if (isRendering) return;
+                if (!file.type.match(/video\/(mp4|webm)/)) {
+                    showToast('Overlay video harus MP4 atau WebM!', true);
+                    return;
+                }
+                if (overlayVideoURL) URL.revokeObjectURL(overlayVideoURL);
+                overlayVideoURL = URL.createObjectURL(file);
+                const preview = document.getElementById('videoOverlayPreview');
+                const removeBtn = document.getElementById('btnRemoveVideoOverlay');
+                if (preview) {
+                    preview.src = overlayVideoURL;
+                    preview.classList.add('visible');
+                    preview.load();
+                }
+                if (removeBtn) removeBtn.classList.add('visible');
+                const vid = document.createElement('video');
+                vid.src = overlayVideoURL;
+                vid.muted = true;
+                vid.loop = true;
+                vid.preload = 'auto';
+                vid.onloadeddata = () => {
+                    overlayVideoElement = vid;
+                    if (!isPlaying && !isRendering) refreshPreview();
+                };
+                vid.load();
+                showToast('✅ Video overlay dimuat!');
+            }
+
+            // ============================================================
+            // LOAD EXTRA PICTURE OVERLAY (in video mode)
+            // ============================================================
+            function loadExtraPictureOverlay(file) {
+                if (isRendering) return;
+                if (!file.type.match(/image\/(jpeg|png)/)) {
+                    showToast('Gambar harus JPG atau PNG!', true);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        extraPictureOverlay = img;
+                        const preview = document.getElementById('pictureOverlayPreviewVideo');
+                        const removeBtn = document.getElementById('btnRemovePictureOverlayVideo');
+                        if (preview) { preview.src = e.target.result;
+                            preview.classList.add('visible'); }
+                        if (removeBtn) removeBtn.classList.add('visible');
+                        if (!isPlaying && !isRendering) refreshPreview();
+                        showToast('✅ Picture tambahan dimuat!');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // ============================================================
+            // BACKGROUND MEDIA
+            // ============================================================
+            function loadBackgroundFile(file) {
+                if (isRendering) return;
+                if (!file) return;
+
+                if (bgType === 'image') {
+                    if (!file.type.match(/image\/(jpeg|png)/)) {
+                        showToast('Background harus JPG atau PNG!', true);
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            backgroundImage = img;
+                            backgroundVideoURL = null;
+                            if (backgroundVideoElement) { backgroundVideoElement.pause();
+                                backgroundVideoElement = null; }
+                            backgroundFileName = file.name.replace(/\.[^.]+$/, '');
+                            bgPreviewMini.src = e.target.result;
+                            bgPreviewMini.classList.add('visible');
+                            bgVideoPreview.classList.remove('visible');
+                            bgVideoPreview.src = '';
+                            btnRemoveBg.classList.add('visible');
+                            updateUploadUI(file);
+                            btnDownload.disabled = false;
+                            showToast('✅ Background gambar dimuat!');
+                            updateOverlaySizeInfo();
+                            videoControls.style.display = 'none';
+                            isPlaying = false;
+                            if (animationId) { cancelAnimationFrame(animationId);
+                                animationId = null; }
+                            refreshPreview();
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    if (!file.type.match(/video\/(mp4|webm)/)) {
+                        showToast('Background harus MP4 atau WebM!', true);
+                        return;
+                    }
+                    if (backgroundVideoURL) URL.revokeObjectURL(backgroundVideoURL);
+                    backgroundVideoURL = URL.createObjectURL(file);
+                    backgroundImage = null;
+                    backgroundFileName = file.name.replace(/\.[^.]+$/, '');
+                    bgPreviewMini.classList.remove('visible');
+                    bgPreviewMini.src = '';
+                    bgVideoPreview.src = backgroundVideoURL;
+                    bgVideoPreview.classList.add('visible');
+                    btnRemoveBg.classList.add('visible');
+                    updateUploadUI(file);
+                    btnDownload.disabled = false;
+                    showToast('✅ Background video dimuat!');
+
+                    const vid = document.createElement('video');
+                    vid.src = backgroundVideoURL;
+                    vid.muted = false; // untuk audio
+                    vid.loop = true;
+                    vid.preload = 'auto';
+                    vid.playsInline = true;
+                    vid.onloadeddata = () => {
+                        backgroundVideoElement = vid;
+                        videoSizeInfo.textContent = `📐 ${vid.videoWidth}×${vid.videoHeight}`;
+                        videoControls.style.display = 'flex';
+                        isPlaying = false;
+                        playPauseBtn.textContent = '▶️ Play';
+                        if (animationId) { cancelAnimationFrame(animationId);
+                            animationId = null; }
+                        drawFirstFrame();
+                        updateTimeInfo(0, vid.duration || 0);
+                    };
+                    vid.load();
+                }
+            }
+
+            function updateUploadUI(file) {
+                const uploadText = bgUploadArea.querySelector('.upload-text');
+                const uploadHint = bgUploadArea.querySelector('.upload-hint');
+                const uploadIcon = bgUploadArea.querySelector('.upload-icon');
+                uploadIcon.style.display = 'none';
+                uploadText.textContent = '✅ Media dimuat!';
+                uploadHint.textContent = `"${file.name}" — ${(file.size/1024/1024).toFixed(1)} MB`;
+            }
+
+            function updateOverlaySizeInfo() {
+                if (currentMode === 'picture') {
+                    const si = document.getElementById('overlaySizeInfo');
+                    if (si && overlayImage && backgroundImage) {
+                        si.textContent =
+                            `📏 Overlay: ${overlayImage.width}×${overlayImage.height}px | BG: ${backgroundImage.width}×${backgroundImage.height}px`;
+                    }
+                }
+            }
+
+            function resetBackground() {
+                if (backgroundVideoURL) URL.revokeObjectURL(backgroundVideoURL);
+                if (overlayVideoURL) URL.revokeObjectURL(overlayVideoURL);
+                backgroundImage = null;
+                backgroundVideoURL = null;
+                backgroundVideoElement = null;
+                overlayImage = null;
+                overlayVideoURL = null;
+                overlayVideoElement = null;
+                extraPictureOverlay = null;
+                isPlaying = false;
+                if (animationId) { cancelAnimationFrame(animationId);
+                    animationId = null; }
+                bgPreviewMini.classList.remove('visible');
+                bgPreviewMini.src = '';
+                bgVideoPreview.classList.remove('visible');
+                bgVideoPreview.src = '';
+                btnRemoveBg.classList.remove('visible');
+                const icon = bgUploadArea.querySelector('.upload-icon');
+                const txt = bgUploadArea.querySelector('.upload-text');
+                const hint = bgUploadArea.querySelector('.upload-hint');
+                icon.style.display = '';
+                txt.textContent = 'Klik atau Seret Media ke Sini';
+                hint.textContent = bgType === 'image' ? '*.jpg / *.png — Tanpa batas ukuran' :
+                    '*.mp4 / *.webm — Tanpa batas ukuran';
+                bgFileInput.value = '';
+                btnDownload.disabled = true;
+                videoControls.style.display = 'none';
+                const ctx = previewCanvas.getContext('2d');
+                ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+                previewCanvas.width = 0;
+                previewCanvas.height = 0;
+                previewCanvas.style.display = 'none';
+                previewVideo.style.display = 'none';
+                previewVideo.src = '';
+                previewPlaceholder.style.display = '';
+                videoTimeInfo.textContent = '⏱️ 0:00 / 0:00';
+                videoSizeInfo.textContent = '📐 -';
+                const pPreview = document.getElementById('pictureOverlayPreviewVideo');
+                const pRemove = document.getElementById('btnRemovePictureOverlayVideo');
+                if (pPreview) { pPreview.classList.remove('visible');
+                    pPreview.src = ''; }
+                if (pRemove) pRemove.classList.remove('visible');
+                const vPreview = document.getElementById('videoOverlayPreview');
+                const vRemove = document.getElementById('btnRemoveVideoOverlay');
+                if (vPreview) { vPreview.classList.remove('visible');
+                    vPreview.src = ''; }
+                if (vRemove) vRemove.classList.remove('visible');
+            }
+
+            // ============================================================
+            // VIDEO PREVIEW CONTROLS
+            // ============================================================
+            function drawFirstFrame() {
+                const vid = backgroundVideoElement;
+                if (!vid) return;
+                const canvas = previewCanvas;
+                const ctx = canvas.getContext('2d');
+                const maxW = 650,
+                    maxH = 420;
+                let dw = vid.videoWidth || 640,
+                    dh = vid.videoHeight || 360;
+                let scale = 1;
+                if (dw > maxW || dh > maxH) {
+                    scale = Math.min(maxW / dw, maxH / dh);
+                    dw = Math.floor(dw * scale);
+                    dh = Math.floor(dh * scale);
+                }
+                canvas.width = dw;
+                canvas.height = dh;
+                canvas.style.display = 'block';
+                previewVideo.style.display = 'none';
+                previewPlaceholder.style.display = 'none';
+                ctx.clearRect(0, 0, dw, dh);
+                ctx.drawImage(vid, 0, 0, dw, dh);
+                applyOverlaysOnCanvas(ctx, dw, dh, 1);
+                updateTimeInfo(vid.currentTime || 0, vid.duration || 0);
+            }
+
+            function togglePlay() {
+                if (isRendering) return;
+                if (!backgroundVideoElement) return;
+                if (isPlaying) {
+                    isPlaying = false;
+                    playPauseBtn.textContent = '▶️ Play';
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                        animationId = null;
+                    }
+                    backgroundVideoElement.pause();
+                } else {
+                    isPlaying = true;
+                    playPauseBtn.textContent = '⏸️ Pause';
+                    if (backgroundVideoElement.paused) {
+                        backgroundVideoElement.play().catch(() => {});
+                    }
+                    startVideoLoop();
+                }
+            }
+
+            function stopVideo() {
+                if (isRendering) return;
+                if (!backgroundVideoElement) return;
+                isPlaying = false;
+                playPauseBtn.textContent = '▶️ Play';
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                backgroundVideoElement.pause();
+                backgroundVideoElement.currentTime = 0;
+                drawFirstFrame();
+                updateTimeInfo(0, backgroundVideoElement.duration || 0);
+                showToast('⏹️ Video dihentikan');
+            }
+
+            function startVideoLoop() {
+                if (animationId) cancelAnimationFrame(animationId);
+                const vid = backgroundVideoElement;
+                if (!vid) return;
+                const canvas = previewCanvas;
+                const ctx = canvas.getContext('2d');
+                const maxW = 650,
+                    maxH = 420;
+                let dw = vid.videoWidth || 640,
+                    dh = vid.videoHeight || 360;
+                let scale = 1;
+                if (dw > maxW || dh > maxH) {
+                    scale = Math.min(maxW / dw, maxH / dh);
+                    dw = Math.floor(dw * scale);
+                    dh = Math.floor(dh * scale);
+                }
+                canvas.width = dw;
+                canvas.height = dh;
+
+                function drawFrame() {
+                    if (!isPlaying || !vid || vid.paused || vid.ended) {
+                        if (vid && vid.ended) {
+                            isPlaying = false;
+                            playPauseBtn.textContent = '▶️ Play';
+                            if (animationId) { cancelAnimationFrame(animationId);
+                                animationId = null; }
+                            return;
+                        }
+                        animationId = requestAnimationFrame(drawFrame);
+                        return;
+                    }
+                    ctx.clearRect(0, 0, dw, dh);
+                    ctx.drawImage(vid, 0, 0, dw, dh);
+                    applyOverlaysOnCanvas(ctx, dw, dh, 1);
+                    updateTimeInfo(vid.currentTime || 0, vid.duration || 0);
+                    animationId = requestAnimationFrame(drawFrame);
+                }
+                animationId = requestAnimationFrame(drawFrame);
+            }
+
+            function applyOverlaysOnCanvas(ctx, width, height, scale) {
+                if (currentMode === 'text') {
+                    drawTextOverlay(ctx, width, height, scale);
+                } else if (currentMode === 'picture') {
+                    drawPictureOverlay(ctx, width, height, scale);
+                    drawTextOverlay(ctx, width, height, scale);
+                } else if (currentMode === 'video') {
+                    if (overlayVideoElement) {
+                        drawVideoOverlayOnCanvas(ctx, width, height, scale);
+                    }
+                    drawTextOverlay(ctx, width, height, scale);
+                    if (extraPictureOverlay) {
+                        drawExtraPictureOverlay(ctx, width, height, scale);
+                    }
+                }
+            }
+
+            function updateTimeInfo(current, duration) {
+                const fmt = (t) => {
+                    const m = Math.floor(t / 60);
+                    const s = Math.floor(t % 60);
+                    return `${m}:${s.toString().padStart(2,'0')}`;
+                };
+                videoTimeInfo.textContent = `⏱️ ${fmt(current)} / ${fmt(duration)}`;
+            }
+
+            // ============================================================
+            // PREVIEW RENDERING
+            // ============================================================
+            function refreshPreview() {
+                if (isRendering) return;
+                if (!backgroundImage && !backgroundVideoElement) {
+                    previewCanvas.style.display = 'none';
+                    previewVideo.style.display = 'none';
+                    previewPlaceholder.style.display = '';
+                    return;
+                }
+
+                if (isVideoBackground && backgroundVideoElement) {
+                    previewCanvas.style.display = 'block';
+                    previewVideo.style.display = 'none';
+                    previewPlaceholder.style.display = 'none';
+                    if (!isPlaying) {
+                        drawFirstFrame();
+                    }
+                    return;
+                } else if (backgroundImage) {
+                    previewCanvas.style.display = 'block';
+                    previewVideo.style.display = 'none';
+                    previewPlaceholder.style.display = 'none';
+                    renderImagePreview();
+                }
+            }
+
+            function renderImagePreview() {
+                const canvas = previewCanvas;
+                const ctx = canvas.getContext('2d');
+                const maxW = 650,
+                    maxH = 420;
+                let dw = backgroundImage.width,
+                    dh = backgroundImage.height;
+                let scale = 1;
+                if (dw > maxW || dh > maxH) {
+                    scale = Math.min(maxW / dw, maxH / dh);
+                    dw = Math.floor(dw * scale);
+                    dh = Math.floor(dh * scale);
+                }
+                canvas.width = dw;
+                canvas.height = dh;
+                ctx.clearRect(0, 0, dw, dh);
+                ctx.drawImage(backgroundImage, 0, 0, dw, dh);
+                applyOverlaysOnCanvas(ctx, dw, dh, scale);
+                updateTimeInfo(0, 0);
+            }
+
+            // ============================================================
+            // DRAW OVERLAY FUNCTIONS
+            // ============================================================
+
+            function getTextPosition(width, height, textWidth, textHeight, padding, position) {
+                let posX, posY;
+                const p = padding || 20;
+                switch (position) {
+                    case 'top-left': posX = p; posY = p; break;
+                    case 'top-center': posX = (width - textWidth) / 2; posY = p; break;
+                    case 'top-right': posX = width - p - textWidth; posY = p; break;
+                    case 'center-left': posX = p; posY = (height - textHeight) / 2; break;
+                    case 'center': posX = (width - textWidth) / 2; posY = (height - textHeight) / 2; break;
+                    case 'center-right': posX = width - p - textWidth; posY = (height - textHeight) / 2; break;
+                    case 'bottom-left': posX = p; posY = height - p - textHeight; break;
+                    case 'bottom-center': posX = (width - textWidth) / 2; posY = height - p - textHeight; break;
+                    case 'bottom-right': posX = width - p - textWidth; posY = height - p - textHeight; break;
+                    default: posX = (width - textWidth) / 2; posY = (height - textHeight) / 2;
+                }
+                return { x: posX, y: posY };
+            }
+
+            function drawTextOverlay(ctx, width, height, scale) {
+                const textInput = document.getElementById('watermarkText');
+                if (!textInput) return;
+                const text = textInput.value;
+                if (!text || text.trim() === '') return;
+
+                const fontFamily = document.getElementById('fontSelect')?.value || "'Arial', sans-serif";
+                const fontSize = (parseInt(document.getElementById('fontSize')?.value) || 60) * (scale || 1);
+                const opacity = (parseInt(document.getElementById('opacity')?.value) || 70) / 100;
+                const rotationDeg = parseInt(document.getElementById('rotation')?.value) || 0;
+                const rotationRad = (rotationDeg * Math.PI) / 180;
+
+                const pos = textPosition || 'center';
+
+                ctx.save();
+
+                const lines = text.split('\n');
+                const lineHeight = fontSize * 1.2;
+                const totalTextHeight = lines.length * lineHeight;
+
+                ctx.font = `bold ${fontSize}px ${fontFamily}`;
+                let maxW = 0;
+                lines.forEach(line => {
+                    const m = ctx.measureText(line);
+                    if (m.width > maxW) maxW = m.width;
+                });
+
+                const s = scale || 1;
+                const padding = 20 * s;
+
+                let textX, textY;
+                const posInfo = getTextPosition(width, height, maxW, totalTextHeight, padding, pos);
+                textX = posInfo.x;
+                textY = posInfo.y;
+
+                const cx = textX + maxW / 2;
+                const cy = textY + totalTextHeight / 2;
+
+                ctx.translate(cx, cy);
+                ctx.rotate(rotationRad);
+                ctx.globalAlpha = opacity;
+
+                const layers = [
+                    { ox: 6 * s, oy: 6 * s, color: 'rgba(0,0,0,0.55)', blur: 4 * s },
+                    { ox: 4.5 * s, oy: 4.5 * s, color: 'rgba(0,0,0,0.45)', blur: 3 * s },
+                    { ox: 3 * s, oy: 3 * s, color: 'rgba(0,0,0,0.35)', blur: 2 * s },
+                    { ox: 1.8 * s, oy: 1.8 * s, color: 'rgba(0,0,0,0.25)', blur: 1.2 * s },
+                    { ox: 0.8 * s, oy: 0.8 * s, color: 'rgba(0,0,0,0.18)', blur: 0.6 * s },
+                ];
+
+                const startY = -totalTextHeight / 2;
+
+                lines.forEach((line, idx) => {
+                    const yOff = startY + idx * lineHeight + lineHeight / 2;
+                    layers.forEach(l => {
+                        ctx.save();
+                        ctx.shadowColor = l.color;
+                        ctx.shadowOffsetX = l.ox;
+                        ctx.shadowOffsetY = l.oy;
+                        ctx.shadowBlur = l.blur;
+                        ctx.fillStyle = 'rgba(0,0,0,0.01)';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(line, 0, yOff);
+                        ctx.restore();
+                    });
+                });
+
+                const gradient = ctx.createLinearGradient(0, -totalTextHeight / 2, 0, totalTextHeight / 2);
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(0.3, '#fef9e7');
+                gradient.addColorStop(0.5, '#f7dc6f');
+                gradient.addColorStop(0.7, '#d4a574');
+                gradient.addColorStop(0.85, '#b8860b');
+                gradient.addColorStop(1, '#8b6914');
+
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowOffsetX = 1.5 * s;
+                ctx.shadowOffsetY = 1.5 * s;
+                ctx.shadowBlur = 2 * s;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                lines.forEach((line, idx) => {
+                    const yOff = startY + idx * lineHeight + lineHeight / 2;
+                    ctx.fillStyle = gradient;
+                    ctx.fillText(line, 0, yOff);
+                });
+
+                ctx.shadowColor = 'transparent';
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,255,255,0.10)';
+                lines.forEach((line, idx) => {
+                    const yOff = startY + idx * lineHeight + lineHeight / 2;
+                    ctx.fillText(line, -0.5 * s, -0.8 * s + yOff);
+                });
+
+                ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+                ctx.lineWidth = 0.6 * s;
+                ctx.lineJoin = 'round';
+                lines.forEach((line, idx) => {
+                    const yOff = startY + idx * lineHeight + lineHeight / 2;
+                    ctx.strokeText(line, 0, yOff);
+                });
+
+                ctx.restore();
+            }
+
+            function drawPictureOverlay(ctx, width, height, scale) {
+                if (!overlayImage) return;
+                const overlayScalePercent = parseInt(document.getElementById('overlayScale')?.value) || 50;
+                const opacity = (parseInt(document.getElementById('overlayOpacity')?.value) || 80) / 100;
+                const rotationDeg = parseInt(document.getElementById('overlayRotation')?.value) || 0;
+                const rotationRad = (rotationDeg * Math.PI) / 180;
+
+                const activePosBtn = document.querySelector('#positionGrid .pos-btn.active');
+                const position = activePosBtn ? activePosBtn.dataset.pos : 'center';
+
+                let s = scale || 1;
+                let overlayW = overlayImage.width * (overlayScalePercent / 100) * s;
+                let overlayH = overlayImage.height * (overlayScalePercent / 100) * s;
+
+                const padding = 20 * s;
+                let posX, posY;
+                switch (position) {
+                    case 'top-left': posX = padding; posY = padding; break;
+                    case 'top-center': posX = (width - overlayW) / 2; posY = padding; break;
+                    case 'top-right': posX = width - padding - overlayW; posY = padding; break;
+                    case 'center-left': posX = padding; posY = (height - overlayH) / 2; break;
+                    case 'center': posX = (width - overlayW) / 2; posY = (height - overlayH) / 2; break;
+                    case 'center-right': posX = width - padding - overlayW; posY = (height - overlayH) / 2; break;
+                    case 'bottom-left': posX = padding; posY = height - padding - overlayH; break;
+                    case 'bottom-center': posX = (width - overlayW) / 2; posY = height - padding - overlayH; break;
+                    case 'bottom-right': posX = width - padding - overlayW; posY = height - padding - overlayH; break;
+                    default: posX = (width - overlayW) / 2; posY = (height - overlayH) / 2;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = opacity;
+                const cx = posX + overlayW / 2;
+                const cy = posY + overlayH / 2;
+                ctx.translate(cx, cy);
+                if (rotationRad !== 0) ctx.rotate(rotationRad);
+                ctx.drawImage(overlayImage, -overlayW / 2, -overlayH / 2, overlayW, overlayH);
+                ctx.restore();
+            }
+
+            function drawVideoOverlayOnCanvas(ctx, width, height, scale) {
+                if (!overlayVideoElement) return;
+                const s = scale || 1;
+                const vid = overlayVideoElement;
+                const vw = vid.videoWidth || 320;
+                const vh = vid.videoHeight || 180;
+                const scalePercent = videoOverlayScale / 100;
+                const targetW = Math.min(width * 0.9, vw * scalePercent * s);
+                const targetH = targetW * (vh / vw);
+
+                const padding = 20 * s;
+                let posX, posY;
+                switch (videoOverlayPosition) {
+                    case 'top-left': posX = padding; posY = padding; break;
+                    case 'top-center': posX = (width - targetW) / 2; posY = padding; break;
+                    case 'top-right': posX = width - padding - targetW; posY = padding; break;
+                    case 'center-left': posX = padding; posY = (height - targetH) / 2; break;
+                    case 'center': posX = (width - targetW) / 2; posY = (height - targetH) / 2; break;
+                    case 'center-right': posX = width - padding - targetW; posY = (height - targetH) / 2; break;
+                    case 'bottom-left': posX = padding; posY = height - padding - targetH; break;
+                    case 'bottom-center': posX = (width - targetW) / 2; posY = height - padding - targetH; break;
+                    case 'bottom-right': posX = width - padding - targetW; posY = height - padding - targetH; break;
+                    default: posX = (width - targetW) / 2; posY = (height - targetH) / 2;
+                }
+
+                ctx.save();
+                ctx.drawImage(vid, posX, posY, targetW, targetH);
+                ctx.restore();
+            }
+
+            function drawExtraPictureOverlay(ctx, width, height, scale) {
+                if (!extraPictureOverlay) return;
+                const s = scale || 1;
+                const scalePercent = (parseInt(document.getElementById('extraPictureScale')?.value) || 25) / 100;
+                const opacity = (parseInt(document.getElementById('extraPictureOpacity')?.value) || 80) / 100;
+                const rotationDeg = parseInt(document.getElementById('extraPictureRotation')?.value) || 0;
+                const rotationRad = (rotationDeg * Math.PI) / 180;
+
+                const pos = extraPicturePosition || 'center';
+                const img = extraPictureOverlay;
+
+                let targetW = img.width * scalePercent * s;
+                let targetH = img.height * scalePercent * s;
+                const padding = 20 * s;
+
+                let posX, posY;
+                switch (pos) {
+                    case 'top-left': posX = padding; posY = padding; break;
+                    case 'top-center': posX = (width - targetW) / 2; posY = padding; break;
+                    case 'top-right': posX = width - padding - targetW; posY = padding; break;
+                    case 'center-left': posX = padding; posY = (height - targetH) / 2; break;
+                    case 'center': posX = (width - targetW) / 2; posY = (height - targetH) / 2; break;
+                    case 'center-right': posX = width - padding - targetW; posY = (height - targetH) / 2; break;
+                    case 'bottom-left': posX = padding; posY = height - padding - targetH; break;
+                    case 'bottom-center': posX = (width - targetW) / 2; posY = height - padding - targetH; break;
+                    case 'bottom-right': posX = width - padding - targetW; posY = height - padding - targetH; break;
+                    default: posX = (width - targetW) / 2; posY = (height - targetH) / 2;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = opacity;
+                const cx = posX + targetW / 2;
+                const cy = posY + targetH / 2;
+                ctx.translate(cx, cy);
+                if (rotationRad !== 0) ctx.rotate(rotationRad);
+                ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
+                ctx.restore();
+            }
+
+            // ============================================================
+            // DOWNLOAD - FIXED: AUDIO + FULL DURATION + LOCK UI
+            // ============================================================
+            async function downloadResult() {
+                if (isRendering) {
+                    showToast('Proses sedang berjalan, tunggu...', true);
+                    return;
+                }
+                if (!backgroundImage && !backgroundVideoElement) {
+                    showToast('Upload background terlebih dahulu!', true);
+                    return;
+                }
+
+                if (backgroundImage && !isVideoBackground) {
+                    downloadImage();
+                    return;
+                }
+
+                if (isVideoBackground && backgroundVideoElement) {
+                    try { stopVideo(); } catch(e){}
+                    await downloadVideoWithAudio();
+                    return;
+                }
+
+                showToast('Format tidak didukung untuk download.', true);
+            }
+
+            function downloadImage() {
+                const fullCanvas = document.createElement('canvas');
+                fullCanvas.width = backgroundImage.width;
+                fullCanvas.height = backgroundImage.height;
+                const ctx = fullCanvas.getContext('2d');
+                ctx.drawImage(backgroundImage, 0, 0);
+                applyOverlaysOnCanvas(ctx, backgroundImage.width, backgroundImage.height, 1);
+
+                const quality = parseInt(document.getElementById('quality')?.value || 85) / 100;
+                fullCanvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${backgroundFileName}_watermarked.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showToast('✅ Gambar berhasil didownload!');
+                }, 'image/jpeg', quality);
+            }
+
+            async function downloadVideoWithAudio() {
+                if (isRecording) {
+                    showToast('Proses download sedang berjalan...', true);
+                    return;
+                }
+
+                var vid = backgroundVideoElement;
+                if (!vid || !vid.videoWidth) {
+                    showToast('Video belum siap. Tunggu sebentar.', true);
+                    return;
+                }
+
+                try{ if(typeof stopVideo==='function') stopVideo(); }catch(e){}
+                if (isPlaying) { togglePlay(); }
+
+                // Lock UI
+                isRendering = true;
+                document.getElementById('leftPanel').classList.add('recording-lock');
+                document.querySelector('.panel:last-child').classList.add('recording-lock');
+
+                var outW = vid.videoWidth;
+                var outH = vid.videoHeight;
+
+                var canvas = document.createElement('canvas');
+                canvas.width = outW;
+                canvas.height = outH;
+                var ctx = canvas.getContext('2d');
+
+                var format = 'mp4'; // paksa mp4 biar audio aman
+                var quality = 0.85;
+
+                showToast('⏳ Siapkan FFmpeg (sekali aja)...', true);
+                
+                // Init FFmpeg untuk Win7 - tanpa audio capture
+                if (!window.ffmpegInstance) {
+                    var createFFmpeg = FFmpeg.createFFmpeg; var fetchFile = FFmpeg.fetchFile;
+                    window.ffmpegInstance = createFFmpeg({
+                        log: false,
+                        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+                        progress: ({ ratio }) => {
+                            if (ratio > 0) {
+                                progressFill.style.width = Math.round(ratio * 100) + '%';
+                            }
+                        }
+                    });
+                    window.fetchFile = fetchFile;
+                    await window.ffmpegInstance.load();
+                }
+                var ffmpeg = window.ffmpegInstance;
+                var fetchFile = window.fetchFile;
+
+                // Setup canvas stream VIDEO ONLY - tanpa audio biar gak delay
+                var fps = 24; // turunin ke 24 buat Win7 aman
+                var canvasStream = canvas.captureStream(fps);
+                var videoTrack = canvasStream.getVideoTracks()[0];
+
+                var combinedStream = new MediaStream();
+                combinedStream.addTrack(videoTrack);
+
+                var bitsPerSecond = Math.floor(outW * outH * 0.25); // lebih ringan
+                var options = {
+                    mimeType: 'video/webm;codecs=vp9',
+                    videoBitsPerSecond: Math.max(bitsPerSecond, 800000)
+                };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options.mimeType = 'video/webm;codecs=vp8';
+                }
+
+                var mediaRecorder = new MediaRecorder(combinedStream, options);
+                var recordedChunks = [];
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    try {
+                        showToast('🔧 Gabungkan audio asli (no delay)...', true);
+                        var videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                        
+                        // Tulis video silent ke ffmpeg
+                        ffmpeg.FS('writeFile', 'video_silent.webm', await fetchFile(videoBlob));
+                        
+                        // Ambil audio asli dari file sumber - ini kunci no delay!
+                        var originalVideoBlob = await fetch(backgroundVideoURL).then(r => r.blob());
+                        ffmpeg.FS('writeFile', 'original.mp4', await fetchFile(originalVideoBlob));
+
+                        // Mux: video dari canvas + audio copy dari asli
+                        // -c:v libx264 ultrafast = ringan buat Win7, gak bikin BSOD
+                        // -c:a aac = kompatibel, tapi audio tetap sinkron karena durasi sama
+                        // -map 0:v -map 1:a = ambil video dari rekaman, audio dari asli
+                        // -shortest = potong sesuai yang terpendek
+                        await ffmpeg.run(
+                            '-i', 'video_silent.webm',
+                            '-i', 'original.mp4',
+                            '-map', '0:v:0',
+                            '-map', '1:a:0',
+                            '-c:v', 'libx264',
+                            '-preset', 'ultrafast',
+                            '-crf', '23',
+                            '-c:a', 'aac',
+                            '-b:a', '128k',
+                            '-shortest',
+                            '-pix_fmt', 'yuv420p',
+                            'output.mp4'
+                        );
+
+                        var data = ffmpeg.FS('readFile', 'output.mp4');
+                        var outBlob = new Blob([data.buffer], { type: 'video/mp4' });
+                        var url = URL.createObjectURL(outBlob);
+                        var link = document.createElement('a');
+                        link.href = url;
+                        link.download = `${backgroundFileName}_watermarked_nodelay.mp4`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+
+                        // Cleanup
+                        try { ffmpeg.FS('unlink', 'video_silent.webm'); } catch(e){}
+                        try { ffmpeg.FS('unlink', 'original.mp4'); } catch(e){}
+                        try { ffmpeg.FS('unlink', 'output.mp4'); } catch(e){}
+
+                        showToast(`✅ Selesai! No delay, audio ori. (${(outBlob.size/1024/1024).toFixed(1)} MB)`);
+                    } catch(err) {
+                        console.error(err);
+                        showToast('❌ Gagal gabung audio: ' + err.message, true);
+                    } finally {
+                        isRecording = false;
+                        isRendering = false;
+                        recordingIndicator.classList.remove('active');
+                        progressBar.classList.remove('active');
+                        btnDownload.disabled = false;
+                        document.getElementById('leftPanel').classList.remove('recording-lock');
+                        document.querySelector('.panel:last-child').classList.remove('recording-lock');
+                        vid.pause();
+                    }
+                };
+
+                isRecording = true;
+                recordingIndicator.classList.add('active');
+                progressBar.classList.add('active');
+                btnDownload.disabled = true;
+
+                vid.currentTime = 0;
+                var duration = vid.duration || 0;
+
+                mediaRecorder.start(250);
+                vid.play().catch(() => {});
+
+                var frameCount = 0;
+                var totalFrames = Math.ceil(duration * fps);
+
+                function renderFrame() {
+                    if (vid.ended || vid.paused || !isRecording) {
+                        if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+                        return;
+                    }
+
+                    ctx.clearRect(0, 0, outW, outH);
+                    ctx.drawImage(vid, 0, 0, outW, outH);
+                    applyOverlaysOnCanvas(ctx, outW, outH, 1);
+
+                    frameCount++;
+                    var progress = Math.min((frameCount / totalFrames) * 50, 50); // 50% untuk rekam
+                    progressFill.style.width = progress + '%';
+
+                    if (vid.currentTime >= duration - 0.05) {
+                        if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+                        return;
+                    }
+
+                    requestAnimationFrame(renderFrame);
+                }
+
+                requestAnimationFrame(renderFrame);
+            }
+
+            // ============================================================
+            // DEBOUNCE
+            // ============================================================
+            let refreshTimeout;
+
+            function debounceRefresh() {
+                clearTimeout(refreshTimeout);
+                refreshTimeout = setTimeout(refreshPreview, 200);
+            }
+
+            // ============================================================
+            // EVENT LISTENERS
+            // ============================================================
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => setMode(btn.dataset.mode));
+            });
+
+            bgTabs.forEach(tab => {
+                tab.addEventListener('click', () => setBgType(tab.dataset.bg));
+            });
+
+            bgUploadArea.addEventListener('click', (e) => {
+                if (e.target !== btnRemoveBg) bgFileInput.click();
+            });
+            bgFileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) loadBackgroundFile(e.target.files[0]);
+            });
+            bgUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                bgUploadArea.classList.add('drag-over');
+            });
+            bgUploadArea.addEventListener('dragleave', () => {
+                bgUploadArea.classList.remove('drag-over');
+            });
+            bgUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                bgUploadArea.classList.remove('drag-over');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.match(/video/)) setBgType('video');
+                    else if (file.type.match(/image/)) setBgType('image');
+                    loadBackgroundFile(file);
+                }
+            });
+            btnRemoveBg.addEventListener('click', (e) => {
+                e.stopPropagation();
+                resetBackground();
+                showToast('Media dihapus');
+            });
+
+            playPauseBtn.addEventListener('click', togglePlay);
+            stopBtn.addEventListener('click', stopVideo);
+
+            btnRefreshPreview.addEventListener('click', () => {
+                if (isRendering) return;
+                if (!backgroundImage && !backgroundVideoElement) {
+                    showToast('Upload media terlebih dahulu!', true);
+                    return;
+                }
+                refreshPreview();
+                showToast('✅ Preview diperbarui!');
+            });
+
+            btnDownload.addEventListener('click', downloadResult);
+
+            document.addEventListener('keydown', (e) => {
+                const el = document.activeElement;
+                if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) {
+                    return;
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!btnDownload.disabled) downloadResult();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === '1') { e.preventDefault(); setMode('text'); }
+                if ((e.ctrlKey || e.metaKey) && e.key === '2') { e.preventDefault(); setMode('picture'); }
+                if ((e.ctrlKey || e.metaKey) && e.key === '3') { e.preventDefault(); setMode('video'); }
+                if (e.key === ' ' && isVideoBackground) {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            });
+
+            // ============================================================
+            // INIT
+            // ============================================================
+            function init() {
+                setMode('text');
+                setBgType('image');
+                previewCanvas.style.display = 'none';
+                previewVideo.style.display = 'none';
+                btnDownload.disabled = true;
+                videoControls.style.display = 'none';
+                if (qualityGlobal && qualityGlobalVal) {
+                    qualityGlobal.addEventListener('input', () => {
+                        qualityGlobalVal.textContent = qualityGlobal.value + '%';
+                    });
+                }
+                console.log('🚀 Watermark 3D Ultimate siap!');
+                console.log('   ✅ Audio support untuk video output');
+                console.log('   ✅ Durasi penuh (tidak terpotong)');
+                console.log('   ✅ Multi-line text support (spasi/enter)');
+                console.log('   ✅ Text position: 9 posisi');
+                console.log('   ✅ Picture overlay in video mode: 9 posisi');
+                console.log('   ✅ Preview tidak otomatis play saat mengetik');
+            }
+
+            init();
+
+        })();
+    </script>
+</body>
+</html>
