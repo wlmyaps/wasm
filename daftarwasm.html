@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAFTAR FILE WASM SAYA</title>
+    <style>
+        /* ── reset & base ── */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #090d09;
+            color: #4afa7a;
+            font-family: 'Courier New', monospace;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background: #0c130c;
+            padding: 28px 24px;
+            border: 1px solid #1d451d;
+            border-radius: 3px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 1.2em;
+            color: #7cff9c;
+            text-align: center;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: normal;
+        }
+
+        .header-links {
+            text-align: center;
+            margin-bottom: 22px;
+            font-size: 0.8em;
+        }
+        .header-links a {
+            color: #4afa7a;
+            text-decoration: none;
+            border-bottom: 1px dotted #1d451d;
+            padding-bottom: 2px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .header-links a:hover {
+            color: #7cff9c;
+            border-color: #4afa7a;
+        }
+        .header-links .sep {
+            opacity: 0.2;
+            margin: 0 12px;
+        }
+
+        /* ── search ── */
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            background: #0a100a;
+            border: 1px solid #1d451d;
+            color: #4afa7a;
+            padding: 10px 36px 10px 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            outline: none;
+            border-radius: 2px;
+            transition: border-color 0.2s;
+        }
+        .search-wrap input:focus {
+            border-color: #4afa7a;
+        }
+        .search-wrap input::placeholder {
+            opacity: 0.3;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #4afa7a;
+            font-size: 1.2em;
+            cursor: pointer;
+            opacity: 0.4;
+            padding: 0 4px;
+            line-height: 1;
+            transition: opacity 0.2s;
+            font-family: inherit;
+        }
+        .search-clear:hover {
+            opacity: 0.9;
+        }
+        .search-clear.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .search-info {
+            font-size: 0.7em;
+            opacity: 0.3;
+            text-align: center;
+            margin-top: 4px;
+            margin-bottom: 12px;
+        }
+
+        /* ── table ── */
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+            border: 1px solid #1d451d;
+        }
+
+        th {
+            background: #0f1a0f;
+            color: #7cff9c;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: normal;
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 2px solid #1d451d;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+        th:hover {
+            background: #1a2a1a;
+        }
+        th .sort-icon {
+            display: inline-block;
+            margin-left: 6px;
+            opacity: 0.3;
+            font-size: 0.7em;
+            transition: opacity 0.2s;
+        }
+        th:hover .sort-icon {
+            opacity: 0.8;
+        }
+        th.sorted-asc .sort-icon {
+            opacity: 1;
+        }
+        th.sorted-desc .sort-icon {
+            opacity: 1;
+        }
+
+        td {
+            padding: 10px 10px;
+            border-bottom: 1px solid #142214;
+            vertical-align: middle;
+            word-break: break-word;
+        }
+
+        /* ── zebra stripes ── */
+        tbody tr:nth-child(odd) {
+            background: #0a120a;
+        }
+        tbody tr:nth-child(even) {
+            background: #0f1a0f;
+        }
+        tbody tr:hover td {
+            background: #1a2a1a;
+        }
+
+        /* ── link copy ── */
+        .copy-link {
+            color: #4afa7a;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            text-decoration-style: dotted;
+            transition: color 0.15s;
+            display: inline-block;
+            max-width: 100%;
+            word-break: break-all;
+        }
+
+        .copy-link:hover {
+            color: #7cff9c;
+            text-decoration-style: solid;
+        }
+
+        .copy-link:active {
+            color: #b3ffc4;
+        }
+
+        .copy-badge {
+            display: inline-block;
+            font-size: 0.6em;
+            background: #1d451d;
+            color: #4afa7a;
+            padding: 1px 8px;
+            border-radius: 2px;
+            margin-left: 6px;
+            letter-spacing: 0.03em;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            user-select: none;
+        }
+
+        .copy-link:hover .copy-badge {
+            opacity: 1;
+        }
+
+        /* ── badges access ── */
+        .badge-private {
+            color: #ffc044;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-umum {
+            color: #4afa7a;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── toast ── */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #0c130c;
+            border: 1px solid #4afa7a;
+            color: #4afa7a;
+            padding: 10px 28px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            border-radius: 3px;
+            opacity: 0;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            pointer-events: none;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── responsive ── */
+        @media (max-width: 700px) {
+            .container {
+                padding: 16px 12px;
+            }
+            table {
+                font-size: 0.75em;
+            }
+            th,
+            td {
+                padding: 8px 6px;
+            }
+            .copy-badge {
+                font-size: 0.5em;
+                padding: 0 5px;
+            }
+            .search-wrap {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 12px 8px;
+            }
+            table {
+                font-size: 0.7em;
+            }
+            td,
+            th {
+                padding: 5px 4px;
+            }
+            h1 {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>📦 DAFTAR FILE Web Assembly</h1>
+
+        <!-- LINK KE DECRYPTOR -->
+        <div class="header-links">
+            <a href="https://wlmyaps.github.io/wasm/" target="_blank">🔗 Buka WASM Decryptor V3</a>
+            <span class="sep">|</span>
+            <span style="opacity:0.3;">⬅️ copy link lalu paste ke loader</span>
+        </div>
+
+        <!-- SEARCH -->
+        <div class="search-wrap">
+            <input type="text" id="searchInput" placeholder="Cari nama, link, fungsi, access..." autocomplete="off">
+            <button class="search-clear" id="searchClear" aria-label="Hapus pencarian">✕</button>
+        </div>
+        <div class="search-info" id="searchInfo">menampilkan semua file</div>
+
+        <div class="table-wrap">
+            <table id="wasmTable">
+                <thead>
+                    <tr>
+                        <th style="width:48px; cursor:default;">No</th>
+                        <th style="min-width:120px;" data-sort="nama">Nama file <span class="sort-icon">⇅</span></th>
+                        <th style="min-width:220px;" data-sort="link">Link <span class="sort-icon">⇅</span></th>
+                        <th style="min-width:140px;" data-sort="fungsi">Fungsi <span class="sort-icon">⇅</span></th>
+                        <th style="width:80px;" data-sort="access">Access <span class="sort-icon">⇅</span></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- di-render oleh JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top:18px; font-size:0.7em; opacity:0.35; text-align:center; border-top:1px solid #142214; padding-top:14px;">
+            klik pada URL untuk menyalin ke clipboard &nbsp;·&nbsp; lalu paste ke WASM Decryptor V3
+        </div>
+    </div>
+
+    <!-- ─── TOAST ─── -->
+    <div id="toast">📋 URL disalin!</div>
+
+    <script>
+        /* ════════════════════════════════════════════════════════
+           DATA — tambah / ubah entry di sini
+           ════════════════════════════════════════════════════════ */
+        const wasmFiles = [{
+            nama: 'watermarkv9.wasm',
+            link: 'https://wlmyaps.github.io/wasm/list/watermarkv9.wasm',
+            fungsi: 'Insert Picture or video watermark V9 codec kualitas tinggi & berat',
+            access: 'Private'
+        }, {
+            nama: 'watermarkv8.wasm',
+            link: 'https://wlmyaps.github.io/wasm/list/watermarkv8.wasm',
+            fungsi: 'Insert Picture or video watermark V8 kualitas ringan & stabil',
+            access: 'Private'
+        }, {
+            nama: 'watermark.wasm',
+            link: 'https://wlmyaps.github.io/wasm/list/watermark.wasm',
+            fungsi: 'Insert Picture or video watermark',
+            access: 'Umum'
+        }, {
+            nama: 'saham.wasm',
+            link: 'https://wlmyaps.github.io/wasm/list/saham.wasm',
+            fungsi: 'Analis 47 harga saham perbankan',
+            access: 'Private'
+        }];
+
+        /* ─── saya tinggal tambah object baru di atas ───
+             contoh:
+             {
+               nama: 'fileku.wasm',
+               link: 'https://wlmyaps.github.io/wasm/list/fileku.wasm',
+               fungsi: 'Deskripsi singkat',
+               access: 'Umum'   // atau 'Private'
+             }
+        ─── */
+
+
+        /* ════════════════════════════════════════════════════════
+           STATE SORTING
+           ════════════════════════════════════════════════════════ */
+        let sortConfig = {
+            key: null,      // 'nama', 'link', 'fungsi', 'access'
+            direction: 'asc' // 'asc' atau 'desc'
+        };
+
+        /* ════════════════════════════════════════════════════════
+           RENDER TABLE + FILTER + SORT
+           ════════════════════════════════════════════════════════ */
+        let currentFilter = '';
+
+        function renderTable(filter = '', sortKey = null, sortDir = 'asc') {
+            const tbody = document.getElementById('tableBody');
+            if (!tbody) return;
+
+            const q = filter.trim().toLowerCase();
+
+            // 1. Filter data
+            let filtered = wasmFiles.filter(item => {
+                return (
+                    item.nama.toLowerCase().includes(q) ||
+                    item.link.toLowerCase().includes(q) ||
+                    (item.fungsi && item.fungsi.toLowerCase().includes(q)) ||
+                    (item.access && item.access.toLowerCase().includes(q))
+                );
+            });
+
+            // 2. Sorting
+            if (sortKey) {
+                filtered.sort((a, b) => {
+                    let valA = a[sortKey] || '';
+                    let valB = b[sortKey] || '';
+                    // case-insensitive
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                    if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            // 3. Build HTML
+            let html = '';
+            let visibleCount = filtered.length;
+
+            filtered.forEach((item, index) => {
+                // nomor urut berdasarkan posisi setelah filter & sort
+                const no = index + 1;
+                const accessClass = (item.access || '').toLowerCase() === 'private' ?
+                    'badge-private' :
+                    'badge-umum';
+
+                html += `
+                    <tr>
+                        <td style="text-align:center;">${no}</td>
+                        <td><span style="opacity:0.8;">${escHtml(item.nama)}</span></td>
+                        <td>
+                            <span class="copy-link" data-url="${escHtml(item.link)}" role="button" tabindex="0">
+                                ${escHtml(item.link)}
+                                <span class="copy-badge">copy</span>
+                            </span>
+                        </td>
+                        <td>${escHtml(item.fungsi || '-')}</td>
+                        <td><span class="${accessClass}">${escHtml(item.access || 'Umum')}</span></td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+
+            // update info
+            const info = document.getElementById('searchInfo');
+            if (info) {
+                if (q === '') {
+                    info.textContent = `menampilkan semua file (${wasmFiles.length})`;
+                } else {
+                    info.textContent = `hasil pencarian "${filter.trim()}" : ${visibleCount} file ditemukan`;
+                }
+            }
+
+            // ── pasang event listener ke semua .copy-link ──
+            document.querySelectorAll('.copy-link').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('data-url');
+                    if (url) copyToClipboard(url, this);
+                });
+
+                el.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const url = this.getAttribute('data-url');
+                        if (url) copyToClipboard(url, this);
+                    }
+                });
+            });
+
+            // update sort indicator di header
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+                const key = th.getAttribute('data-sort');
+                if (key === sortKey) {
+                    th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                    // ubah icon
+                    const icon = th.querySelector('.sort-icon');
+                    if (icon) {
+                        icon.textContent = sortDir === 'asc' ? '▲' : '▼';
+                    }
+                } else {
+                    const icon = th.querySelector('.sort-icon');
+                    if (icon) {
+                        icon.textContent = '⇅';
+                    }
+                }
+            });
+        }
+
+        /* ─── helper escape HTML ─── */
+        function escHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+
+        /* ════════════════════════════════════════════════════════
+           COPY TO CLIPBOARD + TOAST
+           ════════════════════════════════════════════════════════ */
+        function copyToClipboard(text, triggerEl) {
+            if (!text) return;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => showToast('📋 URL disalin!', triggerEl))
+                    .catch(() => fallbackCopy(text, triggerEl));
+            } else {
+                fallbackCopy(text, triggerEl);
+            }
+        }
+
+        function fallbackCopy(text, triggerEl) {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                ta.style.top = '-9999px';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                if (ok) {
+                    showToast('📋 URL disalin! (fallback)', triggerEl);
+                } else {
+                    showToast('❌ Gagal menyalin, silakan copy manual', triggerEl);
+                }
+            } catch (_) {
+                showToast('❌ Gagal menyalin, silakan copy manual', triggerEl);
+            }
+        }
+
+        let toastTimer = null;
+
+        function showToast(msg, triggerEl) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+
+            if (triggerEl) {
+                const badge = triggerEl.querySelector('.copy-badge');
+                if (badge) {
+                    const oldText = badge.textContent;
+                    badge.textContent = '✓';
+                    badge.style.opacity = '1';
+                    badge.style.color = '#7cff9c';
+                    setTimeout(() => {
+                        badge.textContent = oldText;
+                        badge.style.opacity = '';
+                        badge.style.color = '';
+                    }, 1200);
+                }
+            }
+
+            toast.textContent = msg;
+            toast.classList.add('show');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+
+        /* ════════════════════════════════════════════════════════
+           SEARCH LOGIC
+           ════════════════════════════════════════════════════════ */
+        const searchInput = document.getElementById('searchInput');
+        const searchClear = document.getElementById('searchClear');
+
+        function filterTable() {
+            const val = searchInput.value;
+            currentFilter = val;
+            renderTable(val, sortConfig.key, sortConfig.direction);
+
+            // toggle tombol clear (x)
+            if (val.length > 0) {
+                searchClear.classList.remove('hidden');
+            } else {
+                searchClear.classList.add('hidden');
+            }
+        }
+
+        // event input
+        searchInput.addEventListener('input', filterTable);
+
+        // tombol clear (x)
+        searchClear.addEventListener('click', function() {
+            searchInput.value = '';
+            searchInput.focus();
+            filterTable();
+        });
+
+        // tambahan: tekan Escape untuk clear
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterTable();
+                searchInput.blur();
+            }
+        });
+
+
+        /* ════════════════════════════════════════════════════════
+           SORT EVENT
+           ════════════════════════════════════════════════════════ */
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', function() {
+                const key = this.getAttribute('data-sort');
+                // toggle direction jika kolom sama
+                if (sortConfig.key === key) {
+                    sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortConfig.key = key;
+                    sortConfig.direction = 'asc';
+                }
+                // render ulang dengan sorting baru
+                renderTable(currentFilter, sortConfig.key, sortConfig.direction);
+            });
+        });
+
+
+        /* ════════════════════════════════════════════════════════
+           INIT
+           ════════════════════════════════════════════════════════ */
+        document.addEventListener('DOMContentLoaded', function() {
+            // sembunyikan tombol x awal
+            searchClear.classList.add('hidden');
+            // set default sort: nama asc
+            sortConfig.key = 'nama';
+            sortConfig.direction = 'asc';
+            renderTable('', sortConfig.key, sortConfig.direction);
+        });
+    </script>
+
+</body>
+
+</html>
