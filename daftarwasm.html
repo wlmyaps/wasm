@@ -47,21 +47,81 @@
             text-align: center;
             margin-bottom: 22px;
             font-size: 0.8em;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 6px 12px;
         }
+
         .header-links a {
-            color: #4afa7a;
             text-decoration: none;
             border-bottom: 1px dotted #1d451d;
             padding-bottom: 2px;
             transition: color 0.2s, border-color 0.2s;
         }
+
         .header-links a:hover {
-            color: #7cff9c;
-            border-color: #4afa7a;
+            border-color: currentColor;
         }
+
         .header-links .sep {
             opacity: 0.2;
-            margin: 0 12px;
+        }
+
+        .header-links .text-muted {
+            opacity: 0.3;
+        }
+
+        /* ── BLINKING LINKS ── */
+        @keyframes blink-white {
+            0%,
+            100% {
+                opacity: 1;
+                color: #ffffff;
+                text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+            }
+            50% {
+                opacity: 0.2;
+                color: #ffffff;
+                text-shadow: 0 0 2px rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        @keyframes blink-yellow {
+            0%,
+            100% {
+                opacity: 1;
+                color: #ffdd00;
+                text-shadow: 0 0 12px rgba(255, 221, 0, 0.7), 0 0 30px rgba(255, 221, 0, 0.3);
+            }
+            50% {
+                opacity: 0.2;
+                color: #ffdd00;
+                text-shadow: 0 0 4px rgba(255, 221, 0, 0.1);
+            }
+        }
+
+        .blink-white-bold {
+            font-weight: 700;
+            animation: blink-white 1s ease-in-out infinite;
+            color: #ffffff;
+            letter-spacing: 0.02em;
+        }
+
+        .blink-white-bold:hover {
+            animation-duration: 0.5s;
+        }
+
+        .blink-yellow-bold {
+            font-weight: 700;
+            animation: blink-yellow 1s ease-in-out infinite;
+            color: #ffdd00;
+            letter-spacing: 0.02em;
+        }
+
+        .blink-yellow-bold:hover {
+            animation-duration: 0.5s;
         }
 
         /* ── search ── */
@@ -88,9 +148,11 @@
             border-radius: 2px;
             transition: border-color 0.2s;
         }
+
         .search-wrap input:focus {
             border-color: #4afa7a;
         }
+
         .search-wrap input::placeholder {
             opacity: 0.3;
         }
@@ -111,6 +173,7 @@
             transition: opacity 0.2s;
             font-family: inherit;
         }
+
         .search-clear:hover {
             opacity: 0.9;
         }
@@ -292,6 +355,10 @@
             .search-wrap {
                 max-width: 100%;
             }
+            .header-links {
+                font-size: 0.7em;
+                gap: 4px 8px;
+            }
         }
 
         @media (max-width: 500px) {
@@ -317,11 +384,13 @@
     <div class="container">
         <h1>📦 DAFTAR FILE Web Assembly</h1>
 
-        <!-- LINK KE DECRYPTOR -->
+        <!-- LINK KE DECRYPTOR & UNZIP -->
         <div class="header-links">
-            <a href="https://wlmyaps.github.io/wasm/" target="_blank">🔗 Buka WASM Decryptor V3</a>
+            <a href="https://wlmyaps.github.io/wasm/" target="_blank" class="blink-white-bold">🔗 Jalankan file WASM</a>
             <span class="sep">|</span>
-            <span style="opacity:0.3;">⬅️ copy link lalu paste ke loader</span>
+            <span class="text-muted">⬅️ copy link lalu paste ke loader</span>
+            <span class="sep">|</span>
+            <a href="https://wlmyaps.github.io/wasm/wasmunzip.html" target="_blank" class="blink-yellow-bold">🔗 Jalankan file unzip WASM</a>
         </div>
 
         <!-- SEARCH -->
@@ -398,10 +467,9 @@
         }, {
             nama: 'player.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/player.wasm',
-            fungsi: 'Multimedia player dan streaming',
+            fungsi: 'Multimedia streaming <b>(buka dengan Wasm Unzip)</b>',
             access: 'Umum'
-        }
-		];
+        }];
 
         /* ─── saya tinggal tambah object baru di atas ───
              contoh:
@@ -418,7 +486,7 @@
            STATE SORTING
            ════════════════════════════════════════════════════════ */
         let sortConfig = {
-            key: null,      // 'nama', 'link', 'fungsi', 'access'
+            key: null, // 'nama', 'link', 'fungsi', 'access'
             direction: 'asc' // 'asc' atau 'desc'
         };
 
@@ -435,10 +503,11 @@
 
             // 1. Filter data
             let filtered = wasmFiles.filter(item => {
+                const fungsiPlain = item.fungsi ? item.fungsi.replace(/<[^>]*>/g, '') : '';
                 return (
                     item.nama.toLowerCase().includes(q) ||
                     item.link.toLowerCase().includes(q) ||
-                    (item.fungsi && item.fungsi.toLowerCase().includes(q)) ||
+                    (item.fungsi && fungsiPlain.toLowerCase().includes(q)) ||
                     (item.access && item.access.toLowerCase().includes(q))
                 );
             });
@@ -448,7 +517,11 @@
                 filtered.sort((a, b) => {
                     let valA = a[sortKey] || '';
                     let valB = b[sortKey] || '';
-                    // case-insensitive
+                    // untuk fungsi, strip HTML biar sorting konsisten
+                    if (sortKey === 'fungsi') {
+                        valA = valA.replace(/<[^>]*>/g, '');
+                        valB = valB.replace(/<[^>]*>/g, '');
+                    }
                     valA = valA.toLowerCase();
                     valB = valB.toLowerCase();
                     if (valA < valB) return sortDir === 'asc' ? -1 : 1;
@@ -462,26 +535,25 @@
             let visibleCount = filtered.length;
 
             filtered.forEach((item, index) => {
-                // nomor urut berdasarkan posisi setelah filter & sort
                 const no = index + 1;
                 const accessClass = (item.access || '').toLowerCase() === 'private' ?
                     'badge-private' :
                     'badge-umum';
 
                 html += `
-                    <tr>
-                        <td style="text-align:center;">${no}</td>
-                        <td><span style="opacity:0.8;">${escHtml(item.nama)}</span></td>
-                        <td>
-                            <span class="copy-link" data-url="${escHtml(item.link)}" role="button" tabindex="0">
-                                ${escHtml(item.link)}
-                                <span class="copy-badge">copy</span>
-                            </span>
-                        </td>
-                        <td>${escHtml(item.fungsi || '-')}</td>
-                        <td><span class="${accessClass}">${escHtml(item.access || 'Umum')}</span></td>
-                    </tr>
-                `;
+                        <tr>
+                            <td style="text-align:center;">${no}</td>
+                            <td><span style="opacity:0.8;">${escHtml(item.nama)}</span></td>
+                            <td>
+                                <span class="copy-link" data-url="${escHtml(item.link)}" role="button" tabindex="0">
+                                    ${escHtml(item.link)}
+                                    <span class="copy-badge">copy</span>
+                                </span>
+                            </td>
+                            <td>${item.fungsi || '-'}</td>
+                            <td><span class="${accessClass}">${escHtml(item.access || 'Umum')}</span></td>
+                        </tr>
+                    `;
             });
 
             tbody.innerHTML = html;
@@ -519,7 +591,6 @@
                 const key = th.getAttribute('data-sort');
                 if (key === sortKey) {
                     th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
-                    // ubah icon
                     const icon = th.querySelector('.sort-icon');
                     if (icon) {
                         icon.textContent = sortDir === 'asc' ? '▲' : '▼';
@@ -621,7 +692,6 @@
             currentFilter = val;
             renderTable(val, sortConfig.key, sortConfig.direction);
 
-            // toggle tombol clear (x)
             if (val.length > 0) {
                 searchClear.classList.remove('hidden');
             } else {
@@ -629,17 +699,14 @@
             }
         }
 
-        // event input
         searchInput.addEventListener('input', filterTable);
 
-        // tombol clear (x)
         searchClear.addEventListener('click', function() {
             searchInput.value = '';
             searchInput.focus();
             filterTable();
         });
 
-        // tambahan: tekan Escape untuk clear
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 searchInput.value = '';
@@ -655,14 +722,12 @@
         document.querySelectorAll('th[data-sort]').forEach(th => {
             th.addEventListener('click', function() {
                 const key = this.getAttribute('data-sort');
-                // toggle direction jika kolom sama
                 if (sortConfig.key === key) {
                     sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
                 } else {
                     sortConfig.key = key;
                     sortConfig.direction = 'asc';
                 }
-                // render ulang dengan sorting baru
                 renderTable(currentFilter, sortConfig.key, sortConfig.direction);
             });
         });
@@ -672,9 +737,7 @@
            INIT
            ════════════════════════════════════════════════════════ */
         document.addEventListener('DOMContentLoaded', function() {
-            // sembunyikan tombol x awal
             searchClear.classList.add('hidden');
-            // set default sort: nama asc
             sortConfig.key = 'nama';
             sortConfig.direction = 'asc';
             renderTable('', sortConfig.key, sortConfig.direction);
