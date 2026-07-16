@@ -75,54 +75,26 @@
 
         /* ── BLINKING LINKS ── */
         @keyframes blink-white {
-            0%,
-            100% {
-                opacity: 1;
-                color: #ffffff;
-                text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
-            }
-            50% {
-                opacity: 0.2;
-                color: #ffffff;
-                text-shadow: 0 0 2px rgba(255, 255, 255, 0.1);
-            }
+            0%, 100% { opacity: 1; color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6); }
+            50% { opacity: 0.2; color: #ffffff; text-shadow: 0 0 2px rgba(255, 255, 255, 0.1); }
+        }
+        @keyframes blink-red {
+            0%, 100% { opacity: 1; color: #ff4444; text-shadow: 0 0 8px rgba(255, 68, 68, 0.6); }
+            50% { opacity: 0.2; color: #ff4444; text-shadow: 0 0 2px rgba(255, 68, 68, 0.1); }
+        }
+        @keyframes blink-cyan {
+            0%, 100% { opacity: 1; color: #00e5ff; text-shadow: 0 0 8px rgba(0, 229, 255, 0.6); }
+            50% { opacity: 0.2; color: #00e5ff; text-shadow: 0 0 2px rgba(0, 229, 255, 0.1); }
         }
 
-        @keyframes blink-yellow {
-            0%,
-            100% {
-                opacity: 1;
-                color: #ffdd00;
-                text-shadow: 0 0 12px rgba(255, 221, 0, 0.7), 0 0 30px rgba(255, 221, 0, 0.3);
-            }
-            50% {
-                opacity: 0.2;
-                color: #ffdd00;
-                text-shadow: 0 0 4px rgba(255, 221, 0, 0.1);
-            }
-        }
-
-        .blink-white-bold {
-            font-weight: 700;
-            animation: blink-white 1s ease-in-out infinite;
-            color: #ffffff;
-            letter-spacing: 0.02em;
-        }
-
-        .blink-white-bold:hover {
-            animation-duration: 0.5s;
-        }
-
-        .blink-yellow-bold {
-            font-weight: 700;
-            animation: blink-yellow 1s ease-in-out infinite;
-            color: #ffdd00;
-            letter-spacing: 0.02em;
-        }
-
-        .blink-yellow-bold:hover {
-            animation-duration: 0.5s;
-        }
+        .blink-white-bold { font-weight: 700; animation: blink-white 1s ease-in-out infinite; color: #ffffff; letter-spacing: 0.02em; }
+        .blink-white-bold:hover { animation-duration: 0.5s; }
+        
+        .blink-red-bold { font-weight: 700; animation: blink-red 1s ease-in-out infinite; color: #ff4444; letter-spacing: 0.02em; }
+        .blink-red-bold:hover { animation-duration: 0.5s; }
+        
+        .blink-cyan-bold { font-weight: 700; animation: blink-cyan 1s ease-in-out infinite; color: #00e5ff; letter-spacing: 0.02em; }
+        .blink-cyan-bold:hover { animation-duration: 0.5s; }
 
         /* ── search ── */
         .search-wrap {
@@ -174,13 +146,8 @@
             font-family: inherit;
         }
 
-        .search-clear:hover {
-            opacity: 0.9;
-        }
-        .search-clear.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        .search-clear:hover { opacity: 0.9; }
+        .search-clear.hidden { opacity: 0; pointer-events: none; }
 
         .search-info {
             font-size: 0.7em;
@@ -218,25 +185,10 @@
             user-select: none;
             transition: background 0.15s;
         }
-        th:hover {
-            background: #1a2a1a;
-        }
-        th .sort-icon {
-            display: inline-block;
-            margin-left: 6px;
-            opacity: 0.3;
-            font-size: 0.7em;
-            transition: opacity 0.2s;
-        }
-        th:hover .sort-icon {
-            opacity: 0.8;
-        }
-        th.sorted-asc .sort-icon {
-            opacity: 1;
-        }
-        th.sorted-desc .sort-icon {
-            opacity: 1;
-        }
+        th:hover { background: #1a2a1a; }
+        th .sort-icon { display: inline-block; margin-left: 6px; opacity: 0.3; font-size: 0.7em; transition: opacity 0.2s; }
+        th:hover .sort-icon { opacity: 0.8; }
+        th.sorted-asc .sort-icon, th.sorted-desc .sort-icon { opacity: 1; }
 
         td {
             padding: 10px 10px;
@@ -245,16 +197,9 @@
             word-break: break-word;
         }
 
-        /* ── zebra stripes ── */
-        tbody tr:nth-child(odd) {
-            background: #0a120a;
-        }
-        tbody tr:nth-child(even) {
-            background: #0f1a0f;
-        }
-        tbody tr:hover td {
-            background: #1a2a1a;
-        }
+        tbody tr:nth-child(odd) { background: #0a120a; }
+        tbody tr:nth-child(even) { background: #0f1a0f; }
+        tbody tr:hover td { background: #1a2a1a; }
 
         /* ── link copy ── */
         .copy-link {
@@ -268,15 +213,8 @@
             max-width: 100%;
             word-break: break-all;
         }
-
-        .copy-link:hover {
-            color: #7cff9c;
-            text-decoration-style: solid;
-        }
-
-        .copy-link:active {
-            color: #b3ffc4;
-        }
+        .copy-link:hover { color: #7cff9c; text-decoration-style: solid; }
+        .copy-link:active { color: #b3ffc4; }
 
         .copy-badge {
             display: inline-block;
@@ -291,25 +229,37 @@
             transition: opacity 0.2s;
             user-select: none;
         }
+        .copy-link:hover .copy-badge { opacity: 1; }
 
-        .copy-link:hover .copy-badge {
-            opacity: 1;
+        /* ── BADGE UNTUK LOADER (V3, V4, UNZIP) ── */
+        .loader-badge {
+            display: inline-block;
+            font-size: 0.6em;
+            padding: 1px 6px;
+            border-radius: 2px;
+            margin-right: 8px;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+        .loader-badge.v3 {
+            color: #7a9a7a;
+            border: 1px solid #3a5a3a;
+            background: #0f1a0f;
+        }
+        .loader-badge.v4 {
+            color: #00e5ff;
+            border: 1px solid #00e5ff;
+            background: #0a1a1a;
+        }
+        .loader-badge.unzip {
+            color: #ff4444;
+            border: 1px solid #ff4444;
+            background: #1a0a0a;
         }
 
         /* ── badges access ── */
-        .badge-private {
-            color: #ffc044;
-            font-size: 0.7em;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .badge-umum {
-            color: #4afa7a;
-            font-size: 0.7em;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
+        .badge-private { color: #ffc044; font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.04em; }
+        .badge-umum { color: #4afa7a; font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.04em; }
 
         /* ── toast ── */
         #toast {
@@ -330,51 +280,21 @@
             z-index: 999;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
         }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        #toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* ── responsive ── */
         @media (max-width: 700px) {
-            .container {
-                padding: 16px 12px;
-            }
-            table {
-                font-size: 0.75em;
-            }
-            th,
-            td {
-                padding: 8px 6px;
-            }
-            .copy-badge {
-                font-size: 0.5em;
-                padding: 0 5px;
-            }
-            .search-wrap {
-                max-width: 100%;
-            }
-            .header-links {
-                font-size: 0.7em;
-                gap: 4px 8px;
-            }
+            .container { padding: 16px 12px; }
+            table { font-size: 0.75em; }
+            th, td { padding: 8px 6px; }
+            .copy-badge { font-size: 0.5em; padding: 0 5px; }
+            .search-wrap { max-width: 100%; }
+            .header-links { font-size: 0.7em; gap: 4px 8px; }
         }
-
         @media (max-width: 500px) {
-            .container {
-                padding: 12px 8px;
-            }
-            table {
-                font-size: 0.7em;
-            }
-            td,
-            th {
-                padding: 5px 4px;
-            }
-            h1 {
-                font-size: 1em;
-            }
+            .container { padding: 12px 8px; }
+            table { font-size: 0.7em; }
+            td, th { padding: 5px 4px; }
+            h1 { font-size: 1em; }
         }
     </style>
 </head>
@@ -386,11 +306,18 @@
 
         <!-- LINK KE DECRYPTOR & UNZIP -->
         <div class="header-links">
+            <!-- V3 (Putih) -->
             <a href="https://wlmyaps.github.io/wasm/" target="_blank" class="blink-white-bold">🔗 Jalankan file WASM</a>
             <span class="sep">|</span>
             <span class="text-muted">⬅️ copy link lalu paste ke loader</span>
             <span class="sep">|</span>
-            <a href="https://wlmyaps.github.io/wasm/wasmunzip.html" target="_blank" class="blink-yellow-bold">🔗 Jalankan file unzip WASM</a>
+            
+            <!-- UNZIP (Merah) -->
+            <a href="https://wlmyaps.github.io/wasm/wasmunzip.html" target="_blank" class="blink-red-bold">🔗 Jalankan file unzip WASM</a>
+            <span class="sep">|</span>
+
+            <!-- V4 (Cyan/Biru Muda) -->
+            <a href="https://wlmyaps.github.io/wasm/loaderv4.html" target="_blank" class="blink-cyan-bold">🔗 Jalankan file WASM V4</a>
         </div>
 
         <!-- SEARCH -->
@@ -418,7 +345,7 @@
         </div>
 
         <div style="margin-top:18px; font-size:0.7em; opacity:0.35; text-align:center; border-top:1px solid #142214; padding-top:14px;">
-            klik pada URL untuk menyalin ke clipboard &nbsp;·&nbsp; lalu paste ke WASM Decryptor V3
+            klik pada URL untuk menyalin ke clipboard &nbsp;·&nbsp; perhatikan tag warna <span style="color:#7a9a7a;">[V3]</span>, <span style="color:#00e5ff;">[V4]</span>, atau <span style="color:#ff4444;">[UNZIP]</span> untuk tahu loader yang dipakai
         </div>
     </div>
 
@@ -433,56 +360,71 @@
             nama: 'watermarkv9.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/watermarkv9.wasm',
             fungsi: 'Insert Picture or video watermark V9 codec kualitas tinggi & berat',
-            access: 'Private'
+            access: 'Private',
+            loader: 'v3' // <--- TAMBAHKAN INI
         }, {
             nama: 'watermarkv8.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/watermarkv8.wasm',
             fungsi: 'Insert Picture or video watermark V8 kualitas ringan & stabil',
-            access: 'Private'
+            access: 'Private',
+            loader: 'v3'
         }, {
             nama: 'watermark.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/watermark.wasm',
             fungsi: 'Insert Picture or video watermark',
-            access: 'Umum'
+            access: 'Umum',
+            loader: 'v3'
         }, {
             nama: 'saham.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/saham.wasm',
-            fungsi: 'Analis 47 harga saham perbankan',
-            access: 'Private'
+            fungsi: 'Analis 46 harga saham mayoritas perbankan. menganti saham  BEKS menjadi saham BBMD. Penambahan menu sort harga pada tabel',
+            access: 'Private',
+            loader: 'v4'
         }, {
             nama: 'valaszodiak.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/valaszodiak.wasm',
             fungsi: 'Analis Valas + Kalkulator zodiak terlengkap di bumi',
-            access: 'Umum'
+            access: 'Umum',
+            loader: 'v3'
         }, {
             nama: 'emas.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/emas.wasm',
             fungsi: 'Analis Pergerakkan Harga Emas',
-            access: 'Umum'
+            access: 'Umum',
+            loader: 'v3'
         }, {
             nama: 'nonbca.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/nonbca.wasm',
             fungsi: 'Analis 166 mata uang',
-            access: 'Umum'
+            access: 'Umum',
+            loader: 'v3'
         }, {
             nama: 'player.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/player.wasm',
             fungsi: 'Multimedia streaming <b>(buka dengan Wasm Unzip)</b>',
-            access: 'Umum'
+            access: 'Umum',
+            loader: 'unzip' // <--- UBAH INI JADI UNZIP
         }, {
             nama: 'universalfilepacker.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/universalfilepacker.wasm',
             fungsi: 'Packing & proteksi semua jenis file format dengan pilihan format',
-            access: 'Umum'
+            access: 'Umum',
+            loader: 'v3'
+        }, {
+            nama: 'universalfilepacker.wasm',
+            link: 'https://wlmyaps.github.io/wasm/list/universalfilepacker.wasm',
+            fungsi: 'Packing & proteksi semua jenis file format dengan pilihan format',
+            access: 'Umum',
+            loader: 'v3'
         }];
 
-        /* ─── saya tinggal tambah object baru di atas ───
-             contoh:
+        /* ─── cara menambah file BARU (LOADER V4) ───
              {
-               nama: 'fileku.wasm',
-               link: 'https://wlmyaps.github.io/wasm/list/fileku.wasm',
+               nama: 'namafilebaru.wasm',
+               link: 'https://wlmyaps.github.io/wasm/list/namafilebaru.wasm',
                fungsi: 'Deskripsi singkat',
-               access: 'Umum'   // atau 'Private'
+               access: 'Umum',
+               loader: 'v4'   // <--- SETELAH PACKING V4, ISI 'v4' DISINI
              }
         ─── */
 
@@ -491,8 +433,8 @@
            STATE SORTING
            ════════════════════════════════════════════════════════ */
         let sortConfig = {
-            key: null, // 'nama', 'link', 'fungsi', 'access'
-            direction: 'asc' // 'asc' atau 'desc'
+            key: null,
+            direction: 'asc'
         };
 
         /* ════════════════════════════════════════════════════════
@@ -522,7 +464,6 @@
                 filtered.sort((a, b) => {
                     let valA = a[sortKey] || '';
                     let valB = b[sortKey] || '';
-                    // untuk fungsi, strip HTML biar sorting konsisten
                     if (sortKey === 'fungsi') {
                         valA = valA.replace(/<[^>]*>/g, '');
                         valB = valB.replace(/<[^>]*>/g, '');
@@ -545,11 +486,24 @@
                     'badge-private' :
                     'badge-umum';
 
+                // Logika badge loader (V3, V4, atau UNZIP)
+                const loader = item.loader || 'v3'; // default ke v3 jika kosong
+                let loaderClass = 'v3';
+                let loaderLabel = '[V3]';
+                if (loader === 'v4') {
+                    loaderClass = 'v4';
+                    loaderLabel = '[V4]';
+                } else if (loader === 'unzip') {
+                    loaderClass = 'unzip';
+                    loaderLabel = '[UNZIP]';
+                }
+
                 html += `
                         <tr>
                             <td style="text-align:center;">${no}</td>
                             <td><span style="opacity:0.8;">${escHtml(item.nama)}</span></td>
                             <td>
+                                <span class="loader-badge ${loaderClass}">${loaderLabel}</span>
                                 <span class="copy-link" data-url="${escHtml(item.link)}" role="button" tabindex="0">
                                     ${escHtml(item.link)}
                                     <span class="copy-badge">copy</span>
@@ -563,7 +517,6 @@
 
             tbody.innerHTML = html;
 
-            // update info
             const info = document.getElementById('searchInfo');
             if (info) {
                 if (q === '') {
@@ -609,7 +562,6 @@
             });
         }
 
-        /* ─── helper escape HTML ─── */
         function escHtml(str) {
             if (!str) return '';
             const div = document.createElement('div');
