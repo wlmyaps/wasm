@@ -1,328 +1,104 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DAFTAR FILE WASM SAYA</title>
     <style>
-        /* ── reset & base ── */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #090d09; color: #4afa7a; font-family: 'Courier New', monospace; padding: 24px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { width: 100%; max-width: 1100px; background: #0c130c; padding: 28px 24px; border: 1px solid #1d451d; border-radius: 3px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+        h1 { font-size: 1.2em; color: #7cff9c; text-align: center; letter-spacing: 1px; margin-bottom: 8px; font-weight: normal; }
+        .header-links { text-align: center; margin-bottom: 22px; font-size: 0.8em; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 12px; }
+        .header-links a { text-decoration: none; border-bottom: 1px dotted #1d451d; padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
+        .header-links a:hover { border-color: currentColor; }
+        .header-links .sep { opacity: 0.2; }
+        .header-links .text-muted { opacity: 0.3; }
 
-        body {
-            background: #090d09;
-            color: #4afa7a;
-            font-family: 'Courier New', monospace;
-            padding: 24px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1100px;
-            background: #0c130c;
-            padding: 28px 24px;
-            border: 1px solid #1d451d;
-            border-radius: 3px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        h1 {
-            font-size: 1.2em;
-            color: #7cff9c;
-            text-align: center;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            font-weight: normal;
-        }
-
-        .header-links {
-            text-align: center;
-            margin-bottom: 22px;
-            font-size: 0.8em;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 6px 12px;
-        }
-
-        .header-links a {
-            text-decoration: none;
-            border-bottom: 1px dotted #1d451d;
-            padding-bottom: 2px;
-            transition: color 0.2s, border-color 0.2s;
-        }
-
-        .header-links a:hover {
-            border-color: currentColor;
-        }
-
-        .header-links .sep {
-            opacity: 0.2;
-        }
-
-        .header-links .text-muted {
-            opacity: 0.3;
-        }
-
-        /* ── BLINKING LINKS ── */
-        @keyframes blink-white {
-            0%, 100% { opacity: 1; color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6); }
-            50% { opacity: 0.2; color: #ffffff; text-shadow: 0 0 2px rgba(255, 255, 255, 0.1); }
-        }
-        @keyframes blink-red {
-            0%, 100% { opacity: 1; color: #ff4444; text-shadow: 0 0 8px rgba(255, 68, 68, 0.6); }
-            50% { opacity: 0.2; color: #ff4444; text-shadow: 0 0 2px rgba(255, 68, 68, 0.1); }
-        }
-        @keyframes blink-cyan {
-            0%, 100% { opacity: 1; color: #00e5ff; text-shadow: 0 0 8px rgba(0, 229, 255, 0.6); }
-            50% { opacity: 0.2; color: #00e5ff; text-shadow: 0 0 2px rgba(0, 229, 255, 0.1); }
-        }
-
+        @keyframes blink-white { 0%, 100% { opacity: 1; color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6); } 50% { opacity: 0.2; color: #ffffff; text-shadow: 0 0 2px rgba(255, 255, 255, 0.1); } }
+        @keyframes blink-red { 0%, 100% { opacity: 1; color: #ff4444; text-shadow: 0 0 8px rgba(255, 68, 68, 0.6); } 50% { opacity: 0.2; color: #ff4444; text-shadow: 0 0 2px rgba(255, 68, 68, 0.1); } }
+        @keyframes blink-cyan { 0%, 100% { opacity: 1; color: #00e5ff; text-shadow: 0 0 8px rgba(0, 229, 255, 0.6); } 50% { opacity: 0.2; color: #00e5ff; text-shadow: 0 0 2px rgba(0, 229, 255, 0.1); } }
         .blink-white-bold { font-weight: 700; animation: blink-white 1s ease-in-out infinite; color: #ffffff; letter-spacing: 0.02em; }
         .blink-white-bold:hover { animation-duration: 0.5s; }
-        
         .blink-red-bold { font-weight: 700; animation: blink-red 1s ease-in-out infinite; color: #ff4444; letter-spacing: 0.02em; }
         .blink-red-bold:hover { animation-duration: 0.5s; }
-        
         .blink-cyan-bold { font-weight: 700; animation: blink-cyan 1s ease-in-out infinite; color: #00e5ff; letter-spacing: 0.02em; }
         .blink-cyan-bold:hover { animation-duration: 0.5s; }
 
-        /* ── search ── */
-        .search-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            position: relative;
-            max-width: 480px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .search-wrap input {
-            width: 100%;
-            background: #0a100a;
-            border: 1px solid #1d451d;
-            color: #4afa7a;
-            padding: 10px 36px 10px 14px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85em;
-            outline: none;
-            border-radius: 2px;
-            transition: border-color 0.2s;
-        }
-
-        .search-wrap input:focus {
-            border-color: #4afa7a;
-        }
-
-        .search-wrap input::placeholder {
-            opacity: 0.3;
-        }
-
-        .search-clear {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #4afa7a;
-            font-size: 1.2em;
-            cursor: pointer;
-            opacity: 0.4;
-            padding: 0 4px;
-            line-height: 1;
-            transition: opacity 0.2s;
-            font-family: inherit;
-        }
-
+        .search-wrap { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .search-wrap input { width: 100%; background: #0a100a; border: 1px solid #1d451d; color: #4afa7a; padding: 10px 36px 10px 14px; font-family: 'Courier New', monospace; font-size: 0.85em; outline: none; border-radius: 2px; transition: border-color 0.2s; }
+        .search-wrap input:focus { border-color: #4afa7a; }
+        .search-wrap input::placeholder { opacity: 0.3; }
+        .search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #4afa7a; font-size: 1.2em; cursor: pointer; opacity: 0.4; padding: 0 4px; line-height: 1; transition: opacity 0.2s; font-family: inherit; }
         .search-clear:hover { opacity: 0.9; }
         .search-clear.hidden { opacity: 0; pointer-events: none; }
+        .search-info { font-size: 0.7em; opacity: 0.3; text-align: center; margin-top: 4px; margin-bottom: 12px; }
 
-        .search-info {
-            font-size: 0.7em;
-            opacity: 0.3;
-            text-align: center;
-            margin-top: 4px;
-            margin-bottom: 12px;
-        }
-
-        /* ── table ── */
-        .table-wrap {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85em;
-            border: 1px solid #1d451d;
-        }
-
-        th {
-            background: #0f1a0f;
-            color: #7cff9c;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            font-weight: normal;
-            padding: 12px 10px;
-            text-align: left;
-            border-bottom: 2px solid #1d451d;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            cursor: pointer;
-            user-select: none;
-            transition: background 0.15s;
-        }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; border: 1px solid #1d451d; }
+        th { background: #0f1a0f; color: #7cff9c; text-transform: uppercase; letter-spacing: 0.06em; font-weight: normal; padding: 12px 10px; text-align: left; border-bottom: 2px solid #1d451d; position: sticky; top: 0; z-index: 2; cursor: pointer; user-select: none; transition: background 0.15s; }
         th:hover { background: #1a2a1a; }
         th .sort-icon { display: inline-block; margin-left: 6px; opacity: 0.3; font-size: 0.7em; transition: opacity 0.2s; }
         th:hover .sort-icon { opacity: 0.8; }
         th.sorted-asc .sort-icon, th.sorted-desc .sort-icon { opacity: 1; }
-
-        td {
-            padding: 10px 10px;
-            border-bottom: 1px solid #142214;
-            vertical-align: middle;
-            word-break: break-word;
-        }
-
+        td { padding: 10px 10px; border-bottom: 1px solid #142214; vertical-align: middle; word-break: break-word; }
         tbody tr:nth-child(odd) { background: #0a120a; }
         tbody tr:nth-child(even) { background: #0f1a0f; }
         tbody tr:hover td { background: #1a2a1a; }
 
-        /* ── link copy ── */
-        .copy-link {
-            color: #4afa7a;
-            cursor: pointer;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            text-decoration-style: dotted;
-            transition: color 0.15s;
-            display: inline-block;
-            max-width: 100%;
-            word-break: break-all;
-        }
+        .copy-link { color: #4afa7a; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-decoration-style: dotted; transition: color 0.15s; display: inline-block; max-width: 100%; word-break: break-all; }
         .copy-link:hover { color: #7cff9c; text-decoration-style: solid; }
         .copy-link:active { color: #b3ffc4; }
-
-        .copy-badge {
-            display: inline-block;
-            font-size: 0.6em;
-            background: #1d451d;
-            color: #4afa7a;
-            padding: 1px 8px;
-            border-radius: 2px;
-            margin-left: 6px;
-            letter-spacing: 0.03em;
-            opacity: 0.5;
-            transition: opacity 0.2s;
-            user-select: none;
-        }
+        .copy-badge { display: inline-block; font-size: 0.6em; background: #1d451d; color: #4afa7a; padding: 1px 8px; border-radius: 2px; margin-left: 6px; letter-spacing: 0.03em; opacity: 0.5; transition: opacity 0.2s; user-select: none; }
         .copy-link:hover .copy-badge { opacity: 1; }
 
-        /* ── BADGE UNTUK LOADER (V3, V4, UNZIP) ── */
-        .loader-badge {
-            display: inline-block;
-            font-size: 0.6em;
-            padding: 1px 6px;
-            border-radius: 2px;
-            margin-right: 8px;
-            font-weight: bold;
-            vertical-align: middle;
-        }
-        .loader-badge.v3 {
-            color: #7a9a7a;
-            border: 1px solid #3a5a3a;
-            background: #0f1a0f;
-        }
-        .loader-badge.v4 {
-            color: #00e5ff;
-            border: 1px solid #00e5ff;
-            background: #0a1a1a;
-        }
-        .loader-badge.unzip {
-            color: #ff4444;
-            border: 1px solid #ff4444;
-            background: #1a0a0a;
-        }
+        .loader-badge { display: inline-block; font-size: 0.6em; padding: 1px 6px; border-radius: 2px; margin-right: 8px; font-weight: bold; vertical-align: middle; }
+        .loader-badge.v3 { color: #7a9a7a; border: 1px solid #3a5a3a; background: #0f1a0f; }
+        .loader-badge.v4 { color: #00e5ff; border: 1px solid #00e5ff; background: #0a1a1a; }
+		.loader-badge.v8 { color: #ffff00; border: 1px solid #ffff00; background: #1a1a0a; }
+        .loader-badge.unzip { color: #ff4444; border: 1px solid #ff4444; background: #1a0a0a; }
 
-        /* ── badges access ── */
         .badge-private { color: #ffc044; font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.04em; }
         .badge-umum { color: #4afa7a; font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.04em; }
 
-        /* ── toast ── */
-        #toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: #0c130c;
-            border: 1px solid #4afa7a;
-            color: #4afa7a;
-            padding: 10px 28px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85em;
-            border-radius: 3px;
-            opacity: 0;
-            transition: opacity 0.25s ease, transform 0.25s ease;
-            pointer-events: none;
-            z-index: 999;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
-        }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: #0c130c; border: 1px solid #4afa7a; color: #4afa7a; padding: 10px 28px; font-family: 'Courier New', monospace; font-size: 0.85em; border-radius: 3px; opacity: 0; transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; z-index: 999; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7); }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        @media (max-width: 700px) {
-            .container { padding: 16px 12px; }
-            table { font-size: 0.75em; }
-            th, td { padding: 8px 6px; }
-            .copy-badge { font-size: 0.5em; padding: 0 5px; }
-            .search-wrap { max-width: 100%; }
-            .header-links { font-size: 0.7em; gap: 4px 8px; }
-        }
-        @media (max-width: 500px) {
-            .container { padding: 12px 8px; }
-            table { font-size: 0.7em; }
-            td, th { padding: 5px 4px; }
-            h1 { font-size: 1em; }
-        }
+        @media (max-width: 700px) { .container { padding: 16px 12px; } table { font-size: 0.75em; } th, td { padding: 8px 6px; } .copy-badge { font-size: 0.5em; padding: 0 5px; } .search-wrap { max-width: 100%; } .header-links { font-size: 0.7em; gap: 4px 8px; } }
+        @media (max-width: 500px) { .container { padding: 12px 8px; } table { font-size: 0.7em; } td, th { padding: 5px 4px; } h1 { font-size: 1em; } }
+		
+		@keyframes blink-yellow { 
+			0%, 100% { opacity: 1; color: #ffff00; text-shadow: 0 0 8px rgba(255, 255, 0, 0.6); } 
+			50% { opacity: 0.2; color: #ffff00; text-shadow: 0 0 2px rgba(255, 255, 0, 0.1); } 
+		}
+		.blink-yellow-bold { 
+			font-weight: 700; 
+			animation: blink-yellow 1s ease-in-out infinite; 
+			color: #ffff00; 
+			letter-spacing: 0.02em; 
+		}
+		.blink-yellow-bold:hover { 
+			animation-duration: 0.5s; 
+		}
     </style>
 </head>
-
 <body>
-
     <div class="container">
         <h1>📦 DAFTAR FILE Web Assembly</h1>
-
-        <!-- LINK KE DECRYPTOR & UNZIP -->
         <div class="header-links">
-            <!-- V3 (Putih) -->
             <a href="https://wlmyaps.github.io/wasm/" target="_blank" class="blink-white-bold">🔗 Jalankan file WASM</a>
             <span class="sep">|</span>
             <span class="text-muted">⬅️ copy link lalu paste ke loader</span>
             <span class="sep">|</span>
-            
-            <!-- UNZIP (Merah) -->
             <a href="https://wlmyaps.github.io/wasm/wasmunzip.html" target="_blank" class="blink-red-bold">🔗 Jalankan file unzip WASM</a>
             <span class="sep">|</span>
-
-            <!-- V4 (Cyan/Biru Muda) -->
             <a href="https://wlmyaps.github.io/wasm/loaderv4.html" target="_blank" class="blink-cyan-bold">🔗 Jalankan file WASM V4</a>
+			<span class="sep">|</span>
+            <a href="https://wlmyaps.github.io/wasm/loaderv8.html" target="_blank" class="blink-yellow-bold">🔗 Jalankan file WASM V8</a>
         </div>
 
-        <!-- SEARCH -->
         <div class="search-wrap">
-            <input type="text" id="searchInput" placeholder="Cari nama, link, fungsi, access..." autocomplete="off">
+            <input type="text" id="searchInput" placeholder="Cari nama, link, fungsi, access, rilis..." autocomplete="off">
             <button class="search-clear" id="searchClear" aria-label="Hapus pencarian">✕</button>
         </div>
         <div class="search-info" id="searchInfo">menampilkan semua file</div>
@@ -336,11 +112,11 @@
                         <th style="min-width:220px;" data-sort="link">Link <span class="sort-icon">⇅</span></th>
                         <th style="min-width:140px;" data-sort="fungsi">Fungsi <span class="sort-icon">⇅</span></th>
                         <th style="width:80px;" data-sort="access">Access <span class="sort-icon">⇅</span></th>
+                        <!-- ADD KOLOM RILIS -->
+                        <th style="width:100px;" data-sort="rilis">Rilis <span class="sort-icon">⇅</span></th>
                     </tr>
                 </thead>
-                <tbody id="tableBody">
-                    <!-- di-render oleh JS -->
-                </tbody>
+                <tbody id="tableBody"></tbody>
             </table>
         </div>
 
@@ -349,119 +125,122 @@
         </div>
     </div>
 
-    <!-- ─── TOAST ─── -->
     <div id="toast">📋 URL disalin!</div>
 
     <script>
-        /* ════════════════════════════════════════════════════════
-           DATA — tambah / ubah entry di sini
-           ════════════════════════════════════════════════════════ */
+        /* DATA WASM */
         const wasmFiles = [{
             nama: 'watermarkv9.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/watermarkv9.wasm',
             fungsi: 'Insert Picture or video watermark V9 codec kualitas tinggi & berat',
             access: 'Private',
-            loader: 'v3' // <--- TAMBAHKAN INI
+            loader: 'v3', // <--- TAMBAHKAN INI
+            rilis: '2026-06-21'
         }, {
             nama: 'watermarkv8.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/watermarkv8.wasm',
             fungsi: 'Insert Picture or video watermark V8 kualitas ringan & stabil',
             access: 'Private',
-            loader: 'v3'
+            loader: 'v3',
+            rilis: '2026-06-20'
         }, {
             nama: 'watermark.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/watermark.wasm',
             fungsi: 'Insert Picture or video watermark',
             access: 'Umum',
-            loader: 'v3'
+            loader: 'v3',
+            rilis: '2026-06-18'
         }, {
             nama: 'saham.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/saham.wasm',
-            fungsi: 'Analis 46 harga saham mayoritas perbankan. menganti saham  BEKS menjadi saham BBMD. Penambahan menu sort harga pada tabel',
+            fungsi: 'Analis 46 harga saham mayoritas perbankan. menganti saham BEKS menjadi saham BBMD. Penambahan menu sort harga pada tabel',
             access: 'Private',
-            loader: 'v4'
+            loader: 'v4',
+            rilis: '2026-07-16'
         }, {
             nama: 'valaszodiak.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/valaszodiak.wasm',
             fungsi: 'Analis Valas + Kalkulator zodiak terlengkap di bumi',
             access: 'Umum',
-            loader: 'v3'
+            loader: 'v3',
+            rilis: '2026-06-23'
         }, {
             nama: 'emas.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/emas.wasm',
             fungsi: 'Analis Pergerakkan Harga Emas',
             access: 'Umum',
-            loader: 'v3'
+            loader: 'v3',
+            rilis: '2026-06-27'
         }, {
             nama: 'nonbca.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/nonbca.wasm',
             fungsi: 'Analis 166 mata uang',
             access: 'Umum',
-            loader: 'v3'
+            loader: 'v3',
+            rilis: '2026-06-27'
         }, {
             nama: 'player.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/player.wasm',
             fungsi: 'Multimedia streaming <b>(buka dengan Wasm Unzip)</b>',
             access: 'Umum',
-            loader: 'unzip' // <--- UBAH INI JADI UNZIP
+            loader: 'unzip', // <--- UBAH INI JADI UNZIP
+            rilis: '2026-06-27'
         }, {
             nama: 'universalfilepacker.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/universalfilepacker.wasm',
             fungsi: 'Packing & proteksi semua jenis file format dengan pilihan format',
             access: 'Umum',
-            loader: 'v3'
+            loader: 'v3',
+            rilis: '2026-07-01'
         }, {
             nama: 'universalfilepacker.wasm',
             link: 'https://wlmyaps.github.io/wasm/list/universalfilepacker.wasm',
             fungsi: 'Packing & proteksi semua jenis file format dengan pilihan format',
             access: 'Umum',
-            loader: 'v3'
+            loader: 'v3',
+            rilis: '2026-07-01'
+        },
+		{
+            nama: 'Kaligrafi-Proverbs.wasm',
+            link: 'https://wlmyaps.github.io/wasm/list/Kaligrafi-Proverbs.wasm',
+            fungsi: 'Kaligrafy tulisan Cantik berwarna',
+            access: 'Umum',
+            loader: 'v8',
+            rilis: '2026-09-01'
         }];
 
-        /* ─── cara menambah file BARU (LOADER V4) ───
-             {
-               nama: 'namafilebaru.wasm',
-               link: 'https://wlmyaps.github.io/wasm/list/namafilebaru.wasm',
-               fungsi: 'Deskripsi singkat',
-               access: 'Umum',
-               loader: 'v4'   // <--- SETELAH PACKING V4, ISI 'v4' DISINI
-             }
-        ─── */
-
-
-        /* ════════════════════════════════════════════════════════
-           STATE SORTING
-           ════════════════════════════════════════════════════════ */
-        let sortConfig = {
-            key: null,
-            direction: 'asc'
-        };
-
-        /* ════════════════════════════════════════════════════════
-           RENDER TABLE + FILTER + SORT
-           ════════════════════════════════════════════════════════ */
+        let sortConfig = { key: null, direction: 'asc' };
         let currentFilter = '';
 
         function renderTable(filter = '', sortKey = null, sortDir = 'asc') {
             const tbody = document.getElementById('tableBody');
             if (!tbody) return;
-
             const q = filter.trim().toLowerCase();
 
-            // 1. Filter data
             let filtered = wasmFiles.filter(item => {
                 const fungsiPlain = item.fungsi ? item.fungsi.replace(/<[^>]*>/g, '') : '';
                 return (
                     item.nama.toLowerCase().includes(q) ||
                     item.link.toLowerCase().includes(q) ||
                     (item.fungsi && fungsiPlain.toLowerCase().includes(q)) ||
-                    (item.access && item.access.toLowerCase().includes(q))
+                    (item.access && item.access.toLowerCase().includes(q)) ||
+                    (item.rilis && item.rilis.toLowerCase().includes(q))
                 );
             });
 
-            // 2. Sorting
             if (sortKey) {
                 filtered.sort((a, b) => {
+                    if (sortKey === 'rilis') {
+                        const dateA = (a.rilis || '').replace(/\s/g, '');
+                        const dateB = (b.rilis || '').replace(/\s/g, '');
+                        if (dateA < dateB) return sortDir === 'asc' ? -1 : 1;
+                        if (dateA > dateB) return sortDir === 'asc' ? 1 : -1;
+                        const nameA = a.nama.toLowerCase();
+                        const nameB = b.nama.toLowerCase();
+                        if (nameA < nameB) return sortDir === 'asc' ? -1 : 1;
+                        if (nameA > nameB) return sortDir === 'asc' ? 1 : -1;
+                        return 0;
+                    }
                     let valA = a[sortKey] || '';
                     let valB = b[sortKey] || '';
                     if (sortKey === 'fungsi') {
@@ -476,27 +255,17 @@
                 });
             }
 
-            // 3. Build HTML
             let html = '';
             let visibleCount = filtered.length;
 
             filtered.forEach((item, index) => {
                 const no = index + 1;
-                const accessClass = (item.access || '').toLowerCase() === 'private' ?
-                    'badge-private' :
-                    'badge-umum';
-
-                // Logika badge loader (V3, V4, atau UNZIP)
-                const loader = item.loader || 'v3'; // default ke v3 jika kosong
-                let loaderClass = 'v3';
-                let loaderLabel = '[V3]';
-                if (loader === 'v4') {
-                    loaderClass = 'v4';
-                    loaderLabel = '[V4]';
-                } else if (loader === 'unzip') {
-                    loaderClass = 'unzip';
-                    loaderLabel = '[UNZIP]';
-                }
+                const accessClass = (item.access || '').toLowerCase() === 'private' ? 'badge-private' : 'badge-umum';
+                const loader = item.loader || 'v3';
+                let loaderClass = 'v3', loaderLabel = '[V3]';
+                if (loader === 'v4') { loaderClass = 'v4'; loaderLabel = '[V4]'; }
+				else if (loader === 'v8') { loaderClass = 'v8'; loaderLabel = '[V8]'; }
+                else if (loader === 'unzip') { loaderClass = 'unzip'; loaderLabel = '[UNZIP]'; }
 
                 html += `
                         <tr>
@@ -511,188 +280,86 @@
                             </td>
                             <td>${item.fungsi || '-'}</td>
                             <td><span class="${accessClass}">${escHtml(item.access || 'Umum')}</span></td>
+                            <td style="text-align:center;">${escHtml(item.rilis || '-')}</td>
                         </tr>
                     `;
             });
 
             tbody.innerHTML = html;
-
             const info = document.getElementById('searchInfo');
             if (info) {
-                if (q === '') {
-                    info.textContent = `menampilkan semua file (${wasmFiles.length})`;
-                } else {
-                    info.textContent = `hasil pencarian "${filter.trim()}" : ${visibleCount} file ditemukan`;
-                }
+                if (q === '') info.textContent = `menampilkan semua file (${wasmFiles.length})`;
+                else info.textContent = `hasil pencarian "${filter.trim()}" : ${visibleCount} file ditemukan`;
             }
 
-            // ── pasang event listener ke semua .copy-link ──
             document.querySelectorAll('.copy-link').forEach(el => {
-                el.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const url = this.getAttribute('data-url');
-                    if (url) copyToClipboard(url, this);
-                });
-
-                el.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        const url = this.getAttribute('data-url');
-                        if (url) copyToClipboard(url, this);
-                    }
-                });
+                el.addEventListener('click', function(e) { e.preventDefault(); const url = this.getAttribute('data-url'); if (url) copyToClipboard(url, this); });
+                el.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const url = this.getAttribute('data-url'); if (url) copyToClipboard(url, this); } });
             });
 
-            // update sort indicator di header
             document.querySelectorAll('th[data-sort]').forEach(th => {
                 th.classList.remove('sorted-asc', 'sorted-desc');
                 const key = th.getAttribute('data-sort');
                 if (key === sortKey) {
                     th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
                     const icon = th.querySelector('.sort-icon');
-                    if (icon) {
-                        icon.textContent = sortDir === 'asc' ? '▲' : '▼';
-                    }
+                    if (icon) icon.textContent = sortDir === 'asc' ? '▲' : '▼';
                 } else {
                     const icon = th.querySelector('.sort-icon');
-                    if (icon) {
-                        icon.textContent = '⇅';
-                    }
+                    if (icon) icon.textContent = '⇅';
                 }
             });
         }
 
-        function escHtml(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
+        function escHtml(str) { if (!str) return ''; const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
-
-        /* ════════════════════════════════════════════════════════
-           COPY TO CLIPBOARD + TOAST
-           ════════════════════════════════════════════════════════ */
         function copyToClipboard(text, triggerEl) {
             if (!text) return;
-
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text)
-                    .then(() => showToast('📋 URL disalin!', triggerEl))
-                    .catch(() => fallbackCopy(text, triggerEl));
-            } else {
-                fallbackCopy(text, triggerEl);
-            }
+                navigator.clipboard.writeText(text).then(() => showToast('📋 URL disalin!', triggerEl)).catch(() => fallbackCopy(text, triggerEl));
+            } else { fallbackCopy(text, triggerEl); }
         }
-
         function fallbackCopy(text, triggerEl) {
             try {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                ta.style.position = 'fixed';
-                ta.style.left = '-9999px';
-                ta.style.top = '-9999px';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                const ok = document.execCommand('copy');
-                document.body.removeChild(ta);
-                if (ok) {
-                    showToast('📋 URL disalin! (fallback)', triggerEl);
-                } else {
-                    showToast('❌ Gagal menyalin, silakan copy manual', triggerEl);
-                }
-            } catch (_) {
-                showToast('❌ Gagal menyalin, silakan copy manual', triggerEl);
-            }
+                const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta);
+                if (ok) showToast('📋 URL disalin! (fallback)', triggerEl); else showToast('❌ Gagal menyalin, silakan copy manual', triggerEl);
+            } catch (_) { showToast('❌ Gagal menyalin, silakan copy manual', triggerEl); }
         }
-
         let toastTimer = null;
-
         function showToast(msg, triggerEl) {
             const toast = document.getElementById('toast');
             if (!toast) return;
-
             if (triggerEl) {
                 const badge = triggerEl.querySelector('.copy-badge');
                 if (badge) {
-                    const oldText = badge.textContent;
-                    badge.textContent = '✓';
-                    badge.style.opacity = '1';
-                    badge.style.color = '#7cff9c';
-                    setTimeout(() => {
-                        badge.textContent = oldText;
-                        badge.style.opacity = '';
-                        badge.style.color = '';
-                    }, 1200);
+                    const oldText = badge.textContent; badge.textContent = '✓'; badge.style.opacity = '1'; badge.style.color = '#7cff9c';
+                    setTimeout(() => { badge.textContent = oldText; badge.style.opacity = ''; badge.style.color = ''; }, 1200);
                 }
             }
-
-            toast.textContent = msg;
-            toast.classList.add('show');
-
+            toast.textContent = msg; toast.classList.add('show');
             clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
+            toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 2000);
         }
 
-
-        /* ════════════════════════════════════════════════════════
-           SEARCH LOGIC
-           ════════════════════════════════════════════════════════ */
         const searchInput = document.getElementById('searchInput');
         const searchClear = document.getElementById('searchClear');
-
         function filterTable() {
-            const val = searchInput.value;
-            currentFilter = val;
-            renderTable(val, sortConfig.key, sortConfig.direction);
-
-            if (val.length > 0) {
-                searchClear.classList.remove('hidden');
-            } else {
-                searchClear.classList.add('hidden');
-            }
+            const val = searchInput.value; currentFilter = val; renderTable(val, sortConfig.key, sortConfig.direction);
+            if (val.length > 0) searchClear.classList.remove('hidden'); else searchClear.classList.add('hidden');
         }
-
         searchInput.addEventListener('input', filterTable);
+        searchClear.addEventListener('click', function() { searchInput.value = ''; searchInput.focus(); filterTable(); });
+        searchInput.addEventListener('keydown', function(e) { if (e.key === 'Escape') { searchInput.value = ''; filterTable(); searchInput.blur(); } });
 
-        searchClear.addEventListener('click', function() {
-            searchInput.value = '';
-            searchInput.focus();
-            filterTable();
-        });
-
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                searchInput.value = '';
-                filterTable();
-                searchInput.blur();
-            }
-        });
-
-
-        /* ════════════════════════════════════════════════════════
-           SORT EVENT
-           ════════════════════════════════════════════════════════ */
         document.querySelectorAll('th[data-sort]').forEach(th => {
             th.addEventListener('click', function() {
                 const key = this.getAttribute('data-sort');
-                if (sortConfig.key === key) {
-                    sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortConfig.key = key;
-                    sortConfig.direction = 'asc';
-                }
+                if (sortConfig.key === key) sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+                else { sortConfig.key = key; sortConfig.direction = 'asc'; }
                 renderTable(currentFilter, sortConfig.key, sortConfig.direction);
             });
         });
 
-
-        /* ════════════════════════════════════════════════════════
-           INIT
-           ════════════════════════════════════════════════════════ */
         document.addEventListener('DOMContentLoaded', function() {
             searchClear.classList.add('hidden');
             sortConfig.key = 'nama';
@@ -700,7 +367,5 @@
             renderTable('', sortConfig.key, sortConfig.direction);
         });
     </script>
-
 </body>
-
 </html>
